@@ -64,7 +64,7 @@ TEST(MemFileHandleTest, getdents) {
   struct dirent *buf;
 
   int size = 5*sizeof(struct dirent);
-  buf = reinterpret_cast<struct dirent *>(malloc(size));
+  buf = reinterpret_cast<struct dirent *>(calloc(size, 1));
 
   EXPECT_EQ(size, handle->getdents(buf, size));
   EXPECT_STREQ(child3->name().c_str(), (buf+2)->d_name);
@@ -253,4 +253,3 @@ TEST(MemFileHandleTest, read) {
   delete node;
   delete handle;
 }
-

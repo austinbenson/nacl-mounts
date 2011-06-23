@@ -192,10 +192,20 @@ int MountManager::symlink(const char *path1, const char *path2) {
 
 int MountManager::open(const char *path, int oflag, ...) {
   FileHandle *handle;
-  PathHandle ph(path);
+  std::string p(path);
+
+  if (p.length() == 0)
+    return -1;
+  
+  if (p[0] != '/')
+    p = cwd_.FormulatePath() + p;
+
+  PathHandle ph(p);
+
   AcquireLock();
+  
   std::pair<Mount *, std::string> m_and_p =
-    GetMount(ph.FormulatePath(), cwd_mount_);
+    GetMount(ph.FormulatePath(), NULL);
   if (!(m_and_p.first)) {
     errno = ENOENT;
     ReleaseLock();

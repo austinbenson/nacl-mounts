@@ -8,27 +8,7 @@
 #include "../../memory/MemMount.h"
 #include "../../memory/MemNode.h"
 #include "../common/common.h"
-
-MemFileHandle *CreateMemFileHandle(MemMount *mount, MemNode *node,
-                                   int used, int offset, int flags) {
-  MemFileHandle *mfh = new MemFileHandle();
-  mfh->set_mount(mount);
-  mfh->set_node(node);
-  mfh->set_used(used);
-  mfh->set_offset(offset);
-  mfh->set_flags(flags);
-  return mfh;
-}
-
-MemNode *CreateNode(std::string name, MemNode *parent,
-                    MemMount *mount, bool is_dir) {
-  MemNode *node = new MemNode();
-  node->set_name(name);
-  node->set_parent(parent);
-  node->set_mount(mount);
-  node->set_is_dir(is_dir);
-  return node;
-}
+#include "TestHelpCommon.h"
 
 TEST(MemFileHandleTest, lseek) {
   MemMount *mount = new MemMount();

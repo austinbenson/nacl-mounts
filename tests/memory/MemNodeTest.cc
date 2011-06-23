@@ -8,16 +8,7 @@
 #include "../../memory/MemMount.h"
 #include "../../memory/MemNode.h"
 #include "../common/common.h"
-
-MemNode *CreateNode(std::string name, MemNode *parent,
-                    MemMount *mount, bool is_dir = false) {
-  MemNode *node = new MemNode();
-  node->set_name(name);
-  node->set_parent(parent);
-  node->set_mount(mount);
-  node->set_is_dir(is_dir);
-  return node;
-}
+#include "TestHelpCommon.h"
 
 TEST(MemNodeTest, AddChildren) {
   MemMount *mnt = new MemMount();

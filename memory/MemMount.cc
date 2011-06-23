@@ -16,7 +16,7 @@ MemMount::~MemMount() {
   delete root_;
 }
 
-FileHandle *MemMount::MountOpen(const char* path, int oflag, ...) {
+FileHandle *MemMount::MountOpen(std::string path, int oflag, ...) {
   MemNode *node;
   MemNode *parent;
   MemFileHandle *handle;

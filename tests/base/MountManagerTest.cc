@@ -127,6 +127,14 @@ TEST(MountManagerTest, chdir_cwd_wd) {
   EXPECT_EQ(-1, mm->chdir("hi"));
   EXPECT_EQ(-1, mm->chdir("/hi"));
   EXPECT_EQ(0, mm->chdir(".."));
+
+  mm->ClearMounts();
+}
+
+TEST(MountManagerTest, BasicOpen) {
+  MemMount *mnt = new MemMount();
+  EXPECT_EQ(0, mm->AddMount(mnt, "/"));
+  EXPECT_EQ(0, mm->open("test.txt", O_CREAT, 0));
 }
 
 /*

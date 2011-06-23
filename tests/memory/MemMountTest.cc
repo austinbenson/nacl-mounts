@@ -169,7 +169,8 @@ TEST(MemMountTest, MountOpen) {
 
 TEST(MemMountTest, DefaultMount) {
   MountManager* mm = MountManager::MMInstance();
-  int fd = mm->open("/lala.txt", O_WRONLY | O_CREAT, 0644);
+  const char* filename = "/lala.txt";
+  int fd = mm->open(filename, O_WRONLY | O_CREAT, 0644);
   if (fd == -1) {
     perror("mm->open: ");
   }

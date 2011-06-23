@@ -166,5 +166,6 @@ TEST(MemMountTest, DefaultMount) {
     perror("mm->open: ");
   }
   ASSERT_LE(0, fd);
+  ASSERT_EQ(5, mm->write(fd, "hello", 5));
   ASSERT_EQ(0, mm->close(fd));
 }

@@ -1,0 +1,13 @@
+/*
+ * Copyright (c) 2011 The Native Client Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that be
+ * found in the LICENSE file.
+ */
+
+The Makefile is used to generate tests for filesys.
+
+Run:
+1. 'make all' to generate both tests for base/* and memory/*
+2. 'make base' to generate tests for base/*
+3. 'make mem' to generate tests for mem/*
+

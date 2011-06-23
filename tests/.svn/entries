@@ -1,0 +1,63 @@
+10
+
+dir
+0
+https://naclports.googlecode.com/svn/trunk/src/packages/scripts/filesys/tests
+https://naclports.googlecode.com/svn
+add
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+7dad1e8b-422e-d2af-fbf5-8013b78bd812
+
+memory
+dir
+
+
+
+add
+
+common
+dir
+
+
+
+add
+
+base
+dir
+
+
+
+add
+
+Makefile
+file
+
+
+
+add
+
+README
+file
+
+
+
+add
+

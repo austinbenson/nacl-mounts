@@ -41,7 +41,7 @@ MEM_TESTS = MemMount_test MemNode_test MemFileHandle_test
 COMP_TESTS = All_test
 
 
-TESTS = $(BASE_TESTS) $(MEM_TESTS) #$(COMP_TESTS)
+TESTS = $(BASE_TESTS) $(MEM_TESTS) $(COMP_TESTS)
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -158,7 +158,7 @@ MemFileHandle_test: MemFileHandle.o MemNode.o MemMount.o MemFileHandleTest.o \
                     Node.o PathHandle.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
 
-All_test: AllTest.o MountManager.o Node.o FileHandle.o PathHandle.o \
+All_test: AllTest.o MountManager.o Node.o PathHandle.o \
           MemMount.o MemNode.o MemFileHandle.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
 

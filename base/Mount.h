@@ -32,7 +32,7 @@ class Mount {
 
   // mkdir() creates a directory at path (representing the mkdir
   // sys call).
-  virtual int mkdir(const char *path, mode_t mode) { return 0; }
+  virtual int mkdir(std::string path, mode_t mode) { return 0; }
 };
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_MOUNT_H_
 

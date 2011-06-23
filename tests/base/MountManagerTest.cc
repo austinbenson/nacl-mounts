@@ -54,7 +54,7 @@ TEST(MountManagerTest, GetMount) {
   EXPECT_EQ(0, mm->AddMount(mnt, "/"));
   ret = mm->GetMount("/");
   EXPECT_EQ(ret.first, mnt);
-  EXPECT_EQ(0, static_cast<int>(ret.second.length()));
+  EXPECT_STREQ("/", ret.second.c_str());
   ret = mm->GetMount("/usr/local/hi");
   EXPECT_EQ(mnt, ret.first);
   EXPECT_STREQ("usr/local/hi", ret.second.c_str());
@@ -62,7 +62,7 @@ TEST(MountManagerTest, GetMount) {
   EXPECT_EQ(0, mm->AddMount(mnt2, "/home/hi/mount2"));
   ret = mm->GetMount("/home/hi/mount2");
   EXPECT_EQ(mnt2, ret.first);
-  EXPECT_EQ(0, static_cast<int>(ret.second.length()));
+  EXPECT_STREQ("/", ret.second.c_str());
   ret = mm->GetMount("/home/hi/mount2/go/down/deeper");
   EXPECT_EQ(ret.first, mnt2);
   EXPECT_STREQ("/go/down/deeper", ret.second.c_str());
@@ -113,7 +113,7 @@ TEST(MountManagerTest, RoutedSysCalls) {
 
 
 TEST(MountManagerTest, chdir_cwd_wd) {
-  MemMount *mnt1;
+  MemMount *mnt1, *mnt2, *mnt3;
   mnt1 = new MemMount();
   // put in a mount
   EXPECT_EQ(0, mm->AddMount(mnt1, "/"));
@@ -130,21 +130,19 @@ TEST(MountManagerTest, chdir_cwd_wd) {
   EXPECT_EQ(-1, mm->chdir("/hi"));
   EXPECT_EQ(0, mm->chdir(".."));
 
-  /*
   mnt2 = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt2, "/usr/mount2"));
   EXPECT_EQ(-2, mm->AddMount(mnt3, "/usr/mount3"));
   mnt3 = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt3, "/usr/mount3"));
   EXPECT_EQ(0, mm->mkdir("/usr", 0));
-  EXPECT_EQ(0, mm->mkdir("/usr/mount2", 0));
+  EXPECT_EQ(-1, mm->mkdir("/usr/mount2", 0));
   EXPECT_EQ(0, mm->mkdir("/usr/mount2/hello", 0));
   EXPECT_EQ(0, mm->mkdir("/usr/mount2/hello/world", 0));
-  EXPECT_EQ(0, mm->mkdir("/usr/mount3", 0));
+  EXPECT_EQ(-1, mm->mkdir("/usr/mount3", 0));
   EXPECT_EQ(0, mm->chdir("/usr/mount2/hello/world"));
   EXPECT_EQ(0, mm->chdir("../../../mount3"));
   EXPECT_EQ(0, mm->chdir("/"));
-  */
 
   mm->ClearMounts();
 }

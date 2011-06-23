@@ -429,7 +429,7 @@ int MountManager::mkdir(const char *path, mode_t mode) {
     return -1;
   } else {
     ReleaseLock();
-    return m_and_p.first->mkdir(path, mode);
+    return m_and_p.first->mkdir(m_and_p.second, mode);
   }
 }
 
@@ -512,7 +512,7 @@ std::pair<Mount *, std::string> MountManager::GetMount(std::string path) {
   ret.first = mount_map_[curr_best];
   // if the path matches exactly, returned path is empty string
   if (curr_best.compare(path) == 0)
-    ret.second = "";
+    ret.second = "/";
   else
     ret.second = path.substr(curr_best.length());
   return ret;

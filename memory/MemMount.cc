@@ -90,7 +90,7 @@ FileHandle *MemMount::MountOpen(std::string path, int oflag, ...) {
   return handle;
 }
 
-int MemMount::mkdir(const char *path, mode_t mode) {
+int MemMount::mkdir(std::string path, mode_t mode) {
   MemNode *node;
   MemNode *nnode;
 

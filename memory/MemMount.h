@@ -31,7 +31,7 @@ class MemMount: public Mount {
   // mkdir() creates a new directory at path
   // and mimics the mkdir sys call.  This mkdir
   // implementation ignores the mode parameter.
-  int mkdir(const char *path, mode_t mode);
+  int mkdir(std::string path, mode_t mode);
 
   // Given a path, GetNode() returns the Node
   // corresponding to that path.  The MemMounnt class

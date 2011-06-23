@@ -71,7 +71,7 @@ TEST(MemFileHandleTest, getdents) {
 
   free(buf);
   size = 6*sizeof(struct dirent);
-  buf = reinterpret_cast<struct dirent *>(malloc(size));
+  buf = reinterpret_cast<struct dirent *>(calloc(size, 1));
 
   node->RemoveChild(child4);
   node->RemoveChild(child5);

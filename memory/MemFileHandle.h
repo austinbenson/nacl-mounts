@@ -8,6 +8,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <list>
@@ -73,4 +74,3 @@ class MemFileHandle : public FileHandle {
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_MEMORY_MEMFILEHANDLE_H_
-

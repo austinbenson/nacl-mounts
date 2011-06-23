@@ -47,9 +47,17 @@ int MountManager::chdir(const char *path) {
 
   // update path
   AcquireLock();
-  cwd_.AppendPath(path);
-  std::string p = cwd_.FormulatePath();
-  m_and_p = GetMount(p, NULL);
+  std::string p(path);
+  PathHandle ph = cwd_;
+
+  if (p.length() == 0)
+    return -1;
+  if (p[0] == '/')
+    ph.SetPath(p);
+  else
+    ph.AppendPath(p);
+
+  m_and_p = GetMount(cwd_.FormulatePath(), NULL);
 
   if (!(m_and_p.first)) {
     ReleaseLock();
@@ -57,6 +65,7 @@ int MountManager::chdir(const char *path) {
   }
 
   cwd_mount_ = m_and_p.first;
+  cwd_ = ph;
 
   ReleaseLock();
   return 0;
@@ -198,7 +207,7 @@ int MountManager::open(const char *path, int oflag, ...) {
     return -1;
   
   if (p[0] != '/')
-    p = cwd_.FormulatePath() + p;
+    p = cwd_.FormulatePath() + "/" + p;
 
   PathHandle ph(p);
 
@@ -402,9 +411,18 @@ int MountManager::access(const char *path, int amode) {
 
 int MountManager::mkdir(const char *path, mode_t mode) {
   AcquireLock();
-  PathHandle ph(path);
+  std::string p(path);
+  if (p.length() == 0)
+    return -1;
+
+  PathHandle ph;
+  if (p[0] == '/')
+    ph.SetPath(p);
+  else
+    ph.SetPath(cwd_.FormulatePath() + "/" + p);
+
   std::pair<Mount *, std::string> m_and_p =
-    GetMount(ph.FormulatePath(), cwd_mount_);
+    GetMount(ph.FormulatePath(), NULL);
   if (!(m_and_p.first)) {
     errno = ENOTDIR;
     ReleaseLock();

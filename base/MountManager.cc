@@ -57,7 +57,7 @@ int MountManager::chdir(const char *path) {
   else
     ph.AppendPath(p);
 
-  m_and_p = GetMount(cwd_.FormulatePath(), NULL);
+  m_and_p = GetMount(cwd_.FormulatePath());
 
   if (!(m_and_p.first)) {
     ReleaseLock();
@@ -214,7 +214,7 @@ int MountManager::open(const char *path, int oflag, ...) {
   AcquireLock();
   
   std::pair<Mount *, std::string> m_and_p =
-    GetMount(ph.FormulatePath(), NULL);
+    GetMount(ph.FormulatePath());
   if (!(m_and_p.first)) {
     errno = ENOENT;
     ReleaseLock();
@@ -415,14 +415,14 @@ int MountManager::mkdir(const char *path, mode_t mode) {
   if (p.length() == 0)
     return -1;
 
-  PathHandle ph;
+  PathHandle ph = cwd_;
   if (p[0] == '/')
     ph.SetPath(p);
   else
-    ph.SetPath(cwd_.FormulatePath() + "/" + p);
+    ph.AppendPath(p);
 
   std::pair<Mount *, std::string> m_and_p =
-    GetMount(ph.FormulatePath(), NULL);
+    GetMount(ph.FormulatePath());
   if (!(m_and_p.first)) {
     errno = ENOTDIR;
     ReleaseLock();
@@ -464,12 +464,12 @@ Node *MountManager::GetNode(std::string path) {
 
   // check if the path is an absoulte path
   if (path[0] == '/') {
-    m_and_p = GetMount(path, NULL);
+    m_and_p = GetMount(path);
   } else {
     // attach the path to the cwd
     PathHandle ph = cwd_;
     ph.AppendPath(path);
-    m_and_p = GetMount(ph.FormulatePath(), NULL);
+    m_and_p = GetMount(ph.FormulatePath());
   }
 
   if ((m_and_p.second).length() == 0) {
@@ -487,19 +487,13 @@ FileHandle *MountManager::GetFileHandle(int fd) {
   return file_handles_[fd];
 }
 
-std::pair<Mount *, std::string> MountManager::GetMount(std::string path,
-                                                       Mount *starting_mount) {
+std::pair<Mount *, std::string> MountManager::GetMount(std::string path) {
+
   std::pair<Mount *, std::string> ret;
   std::map<std::string, Mount *>::iterator it;
   std::string curr_best = "";
-  ret.first = starting_mount;
+  ret.first = NULL;
   ret.second = path;
-
-  if (starting_mount)
-    for (it = mount_map_.begin();
-         it != mount_map_.end() && path.length() != 0; ++it)
-      if (it->second == starting_mount)
-        path = it->first + path;
 
   if (path.length() == 0)
     return ret;

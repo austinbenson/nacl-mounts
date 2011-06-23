@@ -52,25 +52,7 @@ class MountManager {
 
   // Given an absolute path, GetMount() will
   // return the mount at that location.
-  // If a relative path is given from inside a mount,
-  // the method will look for mounts that are embedded
-  // in that mount.
-  // Note: You can form absolute paths with relative paths
-  // with the FormAbsPath() method.
-  //
-  // path is the desired location
-  // starting_mount is an indicator of where you are starting:
-  //                /files
-  //                      /mount1_root/tools/bigfiles/storage
-  //                                                         /mount2_root
-  //              GetMount(tools/bigfiles/storage/mount2_root,
-  //                                mount1)
-  //         would return mount2 while
-  //         GetMount(tools/bigfiles/storage/mount2_root, NULL)
-  //         would return NULL because GetMount()
-  //         assumes we are starting at starting_mount
-  std::pair<Mount *, std::string> GetMount(std::string path,
-                                       Mount *starting_mount = NULL);
+  std::pair<Mount *, std::string> GetMount(std::string path);
 
   // Remove all mounts that have been added.  The destructors
   // of these mounts will be called.

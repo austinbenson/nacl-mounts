@@ -52,25 +52,25 @@ TEST(MountManagerTest, GetMount) {
   Mount *mnt = new Mount();
 
   EXPECT_EQ(0, mm->AddMount(mnt, "/"));
-  ret = mm->GetMount("/", NULL);
+  ret = mm->GetMount("/");
   EXPECT_EQ(ret.first, mnt);
   EXPECT_EQ(0, static_cast<int>(ret.second.length()));
-  ret = mm->GetMount("/usr/local/hi", NULL);
+  ret = mm->GetMount("/usr/local/hi");
   EXPECT_EQ(mnt, ret.first);
   EXPECT_STREQ("usr/local/hi", ret.second.c_str());
   Mount *mnt2 = new Mount();
   EXPECT_EQ(0, mm->AddMount(mnt2, "/home/hi/mount2"));
-  ret = mm->GetMount("/home/hi/mount2", NULL);
+  ret = mm->GetMount("/home/hi/mount2");
   EXPECT_EQ(mnt2, ret.first);
   EXPECT_EQ(0, static_cast<int>(ret.second.length()));
-  ret = mm->GetMount("/home/hi/mount2/go/down/deeper", NULL);
+  ret = mm->GetMount("/home/hi/mount2/go/down/deeper");
   EXPECT_EQ(ret.first, mnt2);
   EXPECT_STREQ("/go/down/deeper", ret.second.c_str());
-  ret = mm->GetMount("/home/hi", NULL);
+  ret = mm->GetMount("/home/hi");
   EXPECT_EQ(mnt, ret.first);
   EXPECT_STREQ("home/hi", ret.second.c_str());
   std::string s;
-  ret = mm->GetMount(s, NULL);
+  ret = mm->GetMount(s);
   EXPECT_EQ(0, static_cast<int>(ret.second.length()));
 
   mm->ClearMounts();

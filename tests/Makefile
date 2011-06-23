@@ -31,17 +31,7 @@ CPPFLAGS += -I$(GTEST_DIR) -I$(GTEST_DIR)/include
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Werror -lpthread #-pedantic
 
-# Base tests
-BASE_TESTS = MountManager_test Node_test FileHandle_test PathHandle_test
-
-# Memory tests
-MEM_TESTS = MemMount_test MemNode_test MemFileHandle_test
-
-# Comprehensive tests
-COMP_TESTS = All_test
-
-
-TESTS = $(BASE_TESTS) $(MEM_TESTS) $(COMP_TESTS)
+TESTS = All_test
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -82,32 +72,6 @@ gtest_main.a : gtest-all.o gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
 # Build tests for base and memory using gtest_main.a
-MountManagerTest.o: $(BASE_TEST_DIR)/MountManagerTest.cc $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(BASE_TEST_DIR)/MountManagerTest.cc
-
-NodeTest.o: $(BASE_TEST_DIR)/NodeTest.cc \
-          $(USER_BASE_DIR)/Node.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(BASE_TEST_DIR)/NodeTest.cc
-
-PathHandleTest.o: $(BASE_TEST_DIR)/PathHandleTest.cc \
-          $(USER_BASE_DIR)/PathHandle.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(BASE_TEST_DIR)/PathHandleTest.cc
-
-MemNodeTest.o: $(MEM_TEST_DIR)/MemNodeTest.cc \
-          $(USER_MEM_DIR)/MemNode.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(MEM_TEST_DIR)/MemNodeTest.cc
-
-MemMountTest.o: $(MEM_TEST_DIR)/MemMountTest.cc \
-          $(USER_MEM_DIR)/MemMount.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(MEM_TEST_DIR)/MemMountTest.cc
-
-MemFileHandleTest.o: $(MEM_TEST_DIR)/MemFileHandleTest.cc \
-          $(USER_MEM_DIR)/MemFileHandle.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(MEM_TEST_DIR)/MemFileHandleTest.cc
-
-FileHandleTest.o: $(BASE_TEST_DIR)/FileHandleTest.cc $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(BASE_TEST_DIR)/FileHandleTest.cc
-
 AllTest.o: $(COMMON_TEST_DIR)/AllTest.cc $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(COMMON_TEST_DIR)/AllTest.cc
 
@@ -132,31 +96,6 @@ MountManager.o: $(USER_BASE_DIR)/MountManager.cc \
 PathHandle.o: $(USER_BASE_DIR)/PathHandle.cc \
                $(USER_BASE_DIR)/PathHandle.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_BASE_DIR)/PathHandle.cc
-
-MountManager_test: PathHandle.o MountManager.o Node.o MemMount.o MemNode.o \
-                   MemFileHandle.o MountManagerTest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
-
-Node_test: Node.o NodeTest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
-
-PathHandle_test: PathHandle.o PathHandleTest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
-
-FileHandle_test: FileHandleTest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
-
-MemNode_test: MemNode.o Node.o MemMount.o MemNodeTest.o \
-              PathHandle.o MemFileHandle.o Node.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
-
-MemMount_test: MemMount.o PathHandle.o MemNode.o MemMountTest.o \
-               MemFileHandle.o MountManager.o Node.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
-
-MemFileHandle_test: MemFileHandle.o MemNode.o MemMount.o MemFileHandleTest.o \
-                    Node.o PathHandle.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
 
 All_test: AllTest.o MountManager.o Node.o PathHandle.o \
           MemMount.o MemNode.o MemFileHandle.o gtest_main.a

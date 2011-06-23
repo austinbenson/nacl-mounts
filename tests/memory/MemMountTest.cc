@@ -5,6 +5,7 @@
  */
 
 #include "../../base/FileHandle.h"
+#include "../../base/MountManager.h"
 #include "../../memory/MemMount.h"
 #include "../common/common.h"
 
@@ -164,4 +165,14 @@ TEST(MemMountTest, MountOpen) {
             O_CREAT | O_EXCL));
 
   delete mount;
+}
+
+TEST(MemMountTest, DefaultMount) {
+  MountManager* mm = MountManager::MMInstance();
+  int fd = mm->open("/lala.txt", O_WRONLY | O_CREAT, 0644);
+  if (fd == -1) {
+    perror("mm->open: ");
+  }
+  ASSERT_LE(0, fd);
+  ASSERT_EQ(0, mm->close(fd));
 }

@@ -1,0 +1,9 @@
+*.o
+*.a
+FileHandle_test
+MemFileHandle_test
+MemMount_test
+MemNode_test
+MountManager_test
+Node_test
+PathHandle_test

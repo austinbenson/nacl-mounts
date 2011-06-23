@@ -7,3 +7,4 @@ MemNode_test
 MountManager_test
 Node_test
 PathHandle_test
+All_test

@@ -111,10 +111,12 @@ TEST(MountManagerTest, RoutedSysCalls) {
   mm->ClearMounts();
 }
 
+
 TEST(MountManagerTest, chdir_cwd_wd) {
+  MemMount *mnt1;
+  mnt1 = new MemMount();
   // put in a mount
-  MemMount *mnt = new MemMount();
-  EXPECT_EQ(0, mm->AddMount(mnt, "/"));
+  EXPECT_EQ(0, mm->AddMount(mnt1, "/"));
 
   EXPECT_EQ(0, mm->mkdir("/hello/", 0));
   EXPECT_EQ(0, mm->mkdir("/hello/world", 0));
@@ -128,6 +130,22 @@ TEST(MountManagerTest, chdir_cwd_wd) {
   EXPECT_EQ(-1, mm->chdir("/hi"));
   EXPECT_EQ(0, mm->chdir(".."));
 
+  /*
+  mnt2 = new MemMount();
+  EXPECT_EQ(0, mm->AddMount(mnt2, "/usr/mount2"));
+  EXPECT_EQ(-2, mm->AddMount(mnt3, "/usr/mount3"));
+  mnt3 = new MemMount();
+  EXPECT_EQ(0, mm->AddMount(mnt3, "/usr/mount3"));
+  EXPECT_EQ(0, mm->mkdir("/usr", 0));
+  EXPECT_EQ(0, mm->mkdir("/usr/mount2", 0));
+  EXPECT_EQ(0, mm->mkdir("/usr/mount2/hello", 0));
+  EXPECT_EQ(0, mm->mkdir("/usr/mount2/hello/world", 0));
+  EXPECT_EQ(0, mm->mkdir("/usr/mount3", 0));
+  EXPECT_EQ(0, mm->chdir("/usr/mount2/hello/world"));
+  EXPECT_EQ(0, mm->chdir("../../../mount3"));
+  EXPECT_EQ(0, mm->chdir("/"));
+  */
+
   mm->ClearMounts();
 }
 
@@ -137,81 +155,3 @@ TEST(MountManagerTest, BasicOpen) {
   EXPECT_EQ(0, mm->open("test.txt", O_CREAT, 0));
 }
 
-/*
-  EXPECT_STREQ("/hello/world/", mm->getwd(buf));
-  EXPECT_STREQ("/hello/world/", mm->getcwd(buf, 80));
-  EXPECT_STREQ(NULL, mm->getcwd(NULL, 0));
-
-  EXPECT_EQ(0, mm->chdir("hello/world/"));
-  EXPECT_STREQ("/hello/world/", mm->getwd(buf));
-  EXPECT_STREQ("/hello/world/", mm->getcwd(buf, 80));
-
-  EXPECT_EQ(0, mm->chdir(".."));
-  EXPECT_STREQ("/hello/", mm->getwd(buf));
-  EXPECT_STREQ("/hello/", mm->getcwd(buf, 80));
-
-  EXPECT_EQ(0, mm->chdir("./world"));
-  EXPECT_STREQ("/hello/world/", mm->getwd(buf));
-  EXPECT_STREQ("/hello/world/", mm->getcwd(buf, 80));
-
-  EXPECT_EQ(0, mm->chdir(".."));
-  EXPECT_STREQ("/", mm->getwd(buf));
-  EXPECT_STREQ("/", mm->getcwd(buf, 80));
-
-  EXPECT_EQ(-1, mm->chdir(".."));
-  EXPECT_STREQ("/", mm->getwd(buf));
-  EXPECT_STREQ("/", mm->getcwd(buf, 80));
-
-  EXPECT_EQ(0, mm->chdir("."));
-  EXPECT_STREQ("/", mm->getwd(buf));
-  EXPECT_STREQ("/", mm->getcwd(buf, 80));
-
-  // now let's add more mounts
-  Mount *mnt2 = new Mount();
-  Mount *mnt2b = new Mount();
-  Mount *mnt3 = new Mount();
-
-  mm->AddMount(mnt2, "/mounts/mount2");
-  mm->AddMount(mnt2b, "/mounts/mount2/extras/mount2b");
-  mm->AddMount(mnt3, "/mounts/mount4");
-
-  EXPECT_EQ(0, mm->chdir("./mounts/mount2"));
-  EXPECT_STREQ("/mounts/mount2/", mm->getwd(buf));
-  EXPECT_STREQ("/mounts/mount2/", mm->getcwd(buf, 80));
-
-  EXPECT_EQ(0, mm->chdir("/mounts/mount2"));
-  EXPECT_STREQ("/mounts/mount2/", mm->getwd(buf));
-  EXPECT_STREQ("/mounts/mount2/", mm->getcwd(buf, 80));
-
-  EXPECT_EQ(0, mm->chdir("/mounts/mount2/extras/mount2b"));
-  EXPECT_STREQ("/mounts/mount2/extras/mount2b/", mm->getwd(buf));
-  EXPECT_STREQ("/mounts/mount2/extras/mount2b/", mm->getcwd(buf, 80));
-
-  EXPECT_EQ(0, mm->chdir("/mounts/mount4"));
-  EXPECT_STREQ("/mounts/mount4/", mm->getwd(buf));
-  EXPECT_STREQ("/mounts/mount4/", mm->getcwd(buf, 80));
-
-  EXPECT_EQ(0, mm->chdir("../mount2/extras/mount2b"));
-  EXPECT_STREQ("/mounts/mount2/extras/mount2b/", mm->getwd(buf));
-  EXPECT_STREQ("/mounts/mount2/extras/mount2b/", mm->getcwd(buf, 80));
-
-  // now let's cook up more annoying paths
-  EXPECT_EQ(0, mm->chdir("/hello/world/"));
-  EXPECT_EQ(0, mm->chdir(
-    "././././../../hello/world/../world/../world/../../hello/"));
-  EXPECT_STREQ("/hello/world/", mm->getwd(buf));
-  EXPECT_STREQ("/hello/world/", mm->getcwd(buf, 120));
-
-  EXPECT_EQ(0, mm->chdir(
-    "./mounts/mount2/extras/mount2b/down/further/../further/and/further"));
-  EXPECT_EQ(0, mm->chdir(".."));
-  EXPECT_STREQ("/mounts/mount2/extras/mount2b/down/further/and/",
-               mm->getwd(buf));
-  EXPECT_STREQ("/mounts/mount2/extras/mount2b/down/further/and/",
-               mm->getcwd(buf, 120));
-
-  mm->ClearMounts();
-  delete mm;
-}
-
-*/

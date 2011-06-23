@@ -1,0 +1,98 @@
+10
+
+dir
+0
+https://naclports.googlecode.com/svn/trunk/src/packages/scripts/filesys/base
+https://naclports.googlecode.com/svn
+add
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+7dad1e8b-422e-d2af-fbf5-8013b78bd812
+
+FileHandle.h
+file
+
+
+
+add
+
+MountManager.cc
+file
+
+
+
+add
+
+MountManager.h
+file
+
+
+
+add
+
+Entry.cc
+file
+
+
+
+add
+
+Entry.h
+file
+
+
+
+add
+
+Mount.h
+file
+
+
+
+add
+
+Node.cc
+file
+
+
+
+add
+
+Node.h
+file
+
+
+
+add
+
+PathHandle.cc
+file
+
+
+
+add
+
+PathHandle.h
+file
+
+
+
+add
+

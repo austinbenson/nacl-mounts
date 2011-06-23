@@ -5,6 +5,7 @@
  */
 
 #include "../../base/FileHandle.h"
+#include "../../base/MountManager.h"
 #include "../../memory/MemMount.h"
 #include "../common/common.h"
 
@@ -162,6 +163,15 @@ TEST(MemMountTest, MountOpen) {
   EXPECT_NE(fh, mount->MountOpen("/node1/node3/../../node1/./", 0));
   EXPECT_EQ(fh, mount->MountOpen("/node1/node3/../../node1/./",
             O_CREAT | O_EXCL));
+
+  delete mount;
+}
+
+TEST(MemMountTest, MountManager) {
+  MountManager* mm = MountManager::MMInstance();
+  MemMount *mount = new MemMount();
+  EXPECT_EQ(0, mm->AddMount(mount, "/"));
+  EXPECT_EQ(0, mm->RemoveMount("/"));
 
   delete mount;
 }

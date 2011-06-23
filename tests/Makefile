@@ -29,7 +29,7 @@ COMMON_TEST_DIR = ./common
 CPPFLAGS += -I$(GTEST_DIR) -I$(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Werror #-pedantic
+CXXFLAGS += -g -Wall -Werror -lpthread #-pedantic
 
 # Base tests
 BASE_TESTS = MountManager_test Node_test FileHandle_test PathHandle_test
@@ -151,7 +151,7 @@ MemNode_test: MemNode.o Node.o MemMount.o MemNodeTest.o \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
 
 MemMount_test: MemMount.o PathHandle.o MemNode.o MemMountTest.o \
-               MemFileHandle.o Node.o gtest_main.a
+               MemFileHandle.o MountManager.o Node.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
 
 MemFileHandle_test: MemFileHandle.o MemNode.o MemMount.o MemFileHandleTest.o \

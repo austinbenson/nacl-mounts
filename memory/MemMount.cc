@@ -76,6 +76,7 @@ FileHandle *MemMount::MountOpen(std::string path, int oflag, ...) {
   node->IncrementUseCount();
   // Setup file handle.
   handle = new MemFileHandle();
+  handle->set_mount(this);
   handle->set_node(node);
   handle->set_flags(oflag);
   handle->set_used(1);
@@ -189,4 +190,3 @@ MemNode *MemMount::GetMemNode(std::string path) {
 MemNode *MemMount::GetParentMemNode(std::string path) {
   return GetMemNode(path + "/..");
 }
-

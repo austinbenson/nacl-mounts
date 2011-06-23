@@ -167,11 +167,12 @@ TEST(MemMountTest, MountOpen) {
   delete mount;
 }
 
-TEST(MemMountTest, MountManager) {
+TEST(MemMountTest, DefaultMount) {
   MountManager* mm = MountManager::MMInstance();
-  MemMount *mount = new MemMount();
-  EXPECT_EQ(0, mm->AddMount(mount, "/"));
-  EXPECT_EQ(0, mm->RemoveMount("/"));
-
-  delete mount;
+  int fd = mm->open("/lala.txt", O_WRONLY | O_CREAT, 0644);
+  if (fd == -1) {
+    perror("mm->open: ");
+  }
+  ASSERT_LE(0, fd);
+  ASSERT_EQ(0, mm->close(fd));
 }

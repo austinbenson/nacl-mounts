@@ -158,14 +158,44 @@ TEST(MemMountTest, MountOpen) {
   delete mount;
 }
 
-TEST(MemMountTest, DefaultMount) {
+static const char* kTestFileName = "/lala.txt";
+
+static void test_write() {
   MountManager* mm = MountManager::MMInstance();
-  const char* filename = "/lala.txt";
-  int fd = mm->open(filename, O_WRONLY | O_CREAT, 0644);
+  int fd = mm->open(kTestFileName, O_WRONLY | O_CREAT, 0644);
   if (fd == -1) {
     perror("mm->open: ");
   }
   ASSERT_LE(0, fd);
   ASSERT_EQ(5, mm->write(fd, "hello", 5));
   ASSERT_EQ(0, mm->close(fd));
+}
+
+static void test_read(int* out) {
+  MountManager* mm = MountManager::MMInstance();
+  int fd = mm->open(kTestFileName, O_RDONLY);
+  if (fd == -1) {
+    perror("mm->open: ");
+  }
+  ASSERT_LE(0, fd);
+  char buf[6];
+  buf[5] = 0;
+  ASSERT_EQ(5, mm->read(fd, buf, 5));
+  ASSERT_STREQ("hello", buf);
+  *out = fd;
+}
+
+static void test_close(int fd) {
+  ASSERT_EQ(0, MountManager::MMInstance()->close(fd));
+}
+
+TEST(MemMountTest, DefaultMount) {
+  int fds[100];
+  for (int i = 0; i < 100; i++) {
+    test_write();
+    test_read(&fds[i]);
+  }
+  for (int i = 0; i < 100; i++) {
+    test_close(fds[i]);
+  }
 }

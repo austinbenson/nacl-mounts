@@ -60,9 +60,6 @@ int KernelProxy::chdir(const std::string& path) {
   return 0;
 }
 
-
-
-
 int KernelProxy::RegisterFileHandle(FileHandle *fh) {
   size_t fildes;
 
@@ -90,17 +87,17 @@ int KernelProxy::RegisterFileHandle(FileHandle *fh) {
 bool KernelProxy::getcwd(std::string *buf, size_t size) {
   if (size <= 0) {
     errno = EINVAL;
-    return NULL;
+    return false;
   }
   AcquireLock();
-  if (size < cwd_.FormulatePath().length() + 1) {
+  if (size < cwd_.FormulatePath().length()) {
     errno = ERANGE;
     ReleaseLock();
-    return NULL;
+    return false;
   }
-  strncpy(buf, cwd_.FormulatePath().c_str(), size);
+  *buf = cwd_.FormulatePath();
   ReleaseLock();
-  return buf;
+  return true;
 }
 
 bool KernelProxy::getwd(std::string *buf) {
@@ -392,4 +389,3 @@ FileHandle *KernelProxy::GetFileHandle(int fd) {
   if (static_cast<size_t>(fd) + 1 > file_handles_.size()) return NULL;
   return file_handles_[fd];
 }
-

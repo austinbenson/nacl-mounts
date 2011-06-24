@@ -36,8 +36,8 @@ class KernelProxy {
   int link(const std::string& path1, const std::string& path2);
   // TODO(arbenson): implement symlink()
   int symlink(const std::string& path1, const std::string& path2);
-  char *getcwd(std::string *buf, size_t size);
-  char *getwd(std::string *buf);
+  bool getcwd(std::string *buf, size_t size);
+  bool getwd(std::string *buf);
 
   // sys calls that take a path as an argument
   // The mount manager will look for the Node associated to the path.  To

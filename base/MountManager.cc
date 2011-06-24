@@ -172,7 +172,7 @@ char *MountManager::getcwd(char *buf, size_t size) {
     ReleaseLock();
     return NULL;
   }
-  strncpy(buf, cwd_.FormulatePath().c_str(), max_path_len_);
+  strncpy(buf, cwd_.FormulatePath().c_str(), size);
   ReleaseLock();
   return buf;
 }
@@ -205,16 +205,15 @@ int MountManager::open(const char *path, int oflag, ...) {
 
   if (p.length() == 0)
     return -1;
-  
+
   if (p[0] != '/')
     p = cwd_.FormulatePath() + "/" + p;
 
   PathHandle ph(p);
-
   AcquireLock();
-  
   std::pair<Mount *, std::string> m_and_p =
     GetMount(ph.FormulatePath());
+
   if (!(m_and_p.first)) {
     errno = ENOENT;
     ReleaseLock();
@@ -488,7 +487,6 @@ FileHandle *MountManager::GetFileHandle(int fd) {
 }
 
 std::pair<Mount *, std::string> MountManager::GetMount(std::string path) {
-
   std::pair<Mount *, std::string> ret;
   std::map<std::string, Mount *>::iterator it;
   std::string curr_best = "";

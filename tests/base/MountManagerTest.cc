@@ -111,28 +111,40 @@ TEST(MountManagerTest, RoutedSysCalls) {
   mm->ClearMounts();
 }
 
-
 TEST(MountManagerTest, chdir_cwd_wd) {
   MemMount *mnt1, *mnt2, *mnt3;
+  char *buf = reinterpret_cast<char *>(malloc(300));
   mnt1 = new MemMount();
   // put in a mount
   EXPECT_EQ(0, mm->AddMount(mnt1, "/"));
+  EXPECT_STREQ("/", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/", mm->getwd(buf));
 
   EXPECT_EQ(0, mm->mkdir("/hello/", 0));
   EXPECT_EQ(0, mm->mkdir("/hello/world", 0));
 
-  // char *buf = reinterpret_cast<char *>(malloc(256));
+
   EXPECT_EQ(0, mm->chdir("hello/world"));
+  EXPECT_STREQ("/hello/world", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/hello/world", mm->getwd(buf));
   EXPECT_EQ(0, mm->chdir(".."));
+  EXPECT_STREQ("/hello", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/hello", mm->getwd(buf));
   EXPECT_EQ(0, mm->chdir("world"));
+  EXPECT_STREQ("/hello/world", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/hello/world", mm->getwd(buf));
   EXPECT_EQ(0, mm->chdir("."));
+  EXPECT_STREQ("/hello/world", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/hello/world", mm->getwd(buf));
   EXPECT_EQ(-1, mm->chdir("hi"));
   EXPECT_EQ(-1, mm->chdir("/hi"));
   EXPECT_EQ(0, mm->chdir(".."));
+  EXPECT_STREQ("/hello", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/hello", mm->getwd(buf));
 
   mnt2 = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt2, "/usr/mount2"));
-  EXPECT_EQ(-2, mm->AddMount(mnt3, "/usr/mount3"));
+  EXPECT_EQ(-2, mm->AddMount(NULL, "/usr/mount3"));
   mnt3 = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt3, "/usr/mount3"));
   EXPECT_EQ(0, mm->mkdir("/usr", 0));
@@ -141,11 +153,21 @@ TEST(MountManagerTest, chdir_cwd_wd) {
   EXPECT_EQ(0, mm->mkdir("/usr/mount2/hello/world", 0));
   EXPECT_EQ(-1, mm->mkdir("/usr/mount3", 0));
   EXPECT_EQ(0, mm->chdir("/usr/mount2/hello/world"));
+  EXPECT_STREQ("/usr/mount2/hello/world", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/usr/mount2/hello/world", mm->getwd(buf));
   EXPECT_EQ(0, mm->chdir("../../../mount3"));
+  EXPECT_STREQ("/usr/mount3", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/usr/mount3", mm->getwd(buf));
   EXPECT_EQ(0, mm->chdir("/"));
+  EXPECT_STREQ("/", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/", mm->getwd(buf));
+  EXPECT_EQ(0, mm->chdir("usr/mount2/hello"));
+  EXPECT_STREQ("/usr/mount2/hello", mm->getcwd(buf, 300));
+  EXPECT_STREQ("/usr/mount2/hello", mm->getwd(buf));
 
   mm->ClearMounts();
 }
+
 
 TEST(MountManagerTest, BasicOpen) {
   MemMount *mnt = new MemMount();

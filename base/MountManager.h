@@ -19,6 +19,7 @@
 #include <vector>
 #include "../memory/MemMount.h"
 #include "FileHandle.h"
+#include "KernelProxy.h"
 #include "Mount.h"
 #include "Node.h"
 #include "PathHandle.h"
@@ -58,64 +59,22 @@ class MountManager {
   // of these mounts will be called.
   void ClearMounts(void);
 
-  // sys calls handled by mount manager (not mount-specific)
-  int chdir(const char *path);
-  // TODO(arbenson): implement link()
-  int link(const char *path1, const char *path2);
-  // TODO(arbenson): implement symlink()
-  int symlink(const char *path1, const char *path2);
-  char *getcwd(char *buf, size_t size);
-  char *getwd(char *buf);
+  KernelProxy *kp() { return &kp_; }
 
-  // sys calls that take a path as an argument
-  // The mount manager will look for the Node associated to the path.  To
-  // find the node, the mount manager calls the corresponding mounts GetNode()
-  // method.  The corresponding  method will be called.  If the node
-  // cannot be found, errno is set and -1 is returned.
-  int chmod(const char *path, mode_t mode);
-  int remove(const char *path);
-  int stat(const char *path, struct stat *buf);
-  int access(const char *path, int amode);
-  int mkdir(const char *path, mode_t mode);
-  int rmdir(const char *path);
-  int open(const char *path, int oflag, ...);
-
-  // sys calls that take a file descriptor as an argument
-  // The mount manager will look at the registered file handles for the
-  // FileHandle corresponding to fd.  If the handle is found
-  // the handle's corresonding mount_*() method gets called.  If the handle
-  // cannot be found, errno is set and the return value indicates an error
-  // in the same way that the sys call would.
-  int close(int fd);
-  ssize_t read(int fd, void *buf, size_t nbyte);
-  ssize_t write(int fd, const void *buf, size_t nbyte);
-  int fstat(int fd, struct stat *buf);
-  int isatty(int fd);
-  int getdents(int fd, void *buf, unsigned int count);
-  off_t lseek(int fd, off_t offset, int whence);
-  int ioctl(int fd, unsigned long request, ...);
+  Node *GetNode(std::string path);
 
  private:
   std::map<std::string, Mount*> mount_map_;
-  std::map<std::string, std::string> symlinks_;
-  std::vector<FileHandle*> file_handles_;
+  KernelProxy kp_;
+
   Mount *cwd_mount_;
-  PathHandle cwd_;
 
   MountManager();
   static void Instantiate();
 
-  // Add a file to the mount manager's vector of handles.  This method
-  // will assign the file handle's fd and will return that value
-  // on success.  On failure, -1 is returned.  Note that file handles
-  // are removed when close() is called on a Node
-  int RegisterFileHandle(FileHandle *fh);
-
   void Init(void);
-  Node *GetNode(std::string path);
-  FileHandle *GetFileHandle(int fd);
 
-  int max_path_len_;
+
   static MountManager *mm_instance_;
 
   // concurrency tools

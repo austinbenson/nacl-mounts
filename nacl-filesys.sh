@@ -21,6 +21,7 @@ CustomBuildStep() {
   MakeDir ${PACKAGE_DIR}
   ChangeDir ${PACKAGE_DIR}
   ${NACLCC} -c ${START_DIR}/base/MountManager.cc -o MountManager.o
+  ${NACLCC} -c ${START_DIR}/base/KernelProxy.cc -o KernelProxy.o
   ${NACLCC} -c ${START_DIR}/base/Node.cc -o Node.o
   ${NACLCC} -c ${START_DIR}/base/PathHandle.cc -o PathHandle.o
   ${NACLCC} -c ${START_DIR}/base/Entry.cc -o Entry.o
@@ -29,6 +30,7 @@ CustomBuildStep() {
   ${NACLCC} -c ${START_DIR}/memory/MemFileHandle.cc -o MemFileHandle.o
   ${NACLAR} rcs filesys.a \
       MountManager.o \
+      KernelProxy.o \
       Node.o \
       PathHandle.o \
       Entry.o \

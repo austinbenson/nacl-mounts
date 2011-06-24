@@ -31,26 +31,27 @@ class KernelProxy {
   void Init(MountManager *mm);
 
   // sys calls handled by mount manager (not mount-specific)
-  int chdir(const char *path);
+  int chdir(const std::string& path);
   // TODO(arbenson): implement link()
-  int link(const char *path1, const char *path2);
+  int link(const std::string& path1, const std::string& path2);
   // TODO(arbenson): implement symlink()
-  int symlink(const char *path1, const char *path2);
-  char *getcwd(char *buf, size_t size);
-  char *getwd(char *buf);
+  int symlink(const std::string& path1, const std::string& path2);
+  char *getcwd(std::string *buf, size_t size);
+  char *getwd(std::string *buf);
 
   // sys calls that take a path as an argument
   // The mount manager will look for the Node associated to the path.  To
   // find the node, the mount manager calls the corresponding mounts GetNode()
   // method.  The corresponding  method will be called.  If the node
   // cannot be found, errno is set and -1 is returned.
-  int chmod(const char *path, mode_t mode);
-  int remove(const char *path);
-  int stat(const char *path, struct stat *buf);
-  int access(const char *path, int amode);
-  int mkdir(const char *path, mode_t mode);
-  int rmdir(const char *path);
-  int open(const char *path, int oflag, ...);
+  int chmod(const std::string& path, mode_t mode);
+  int remove(const std::string& path);
+  int stat(const std::string& path, struct stat *buf);
+  int access(const std::string& path, int amode);
+  int mkdir(const std::string& path, mode_t mode);
+  int rmdir(const std::string& path);
+  int open(const std::string& path, int oflag);
+  int open(const std::string& path, int oflag, mode_t mode);
 
   // sys calls that take a file descriptor as an argument
   // The mount manager will look at the registered file handles for the
@@ -65,7 +66,7 @@ class KernelProxy {
   int isatty(int fd);
   int getdents(int fd, void *buf, unsigned int count);
   off_t lseek(int fd, off_t offset, int whence);
-  int ioctl(int fd, unsigned long request, ...);
+  int ioctl(int fd, unsigned long request);
 
  private:
   PathHandle cwd_;

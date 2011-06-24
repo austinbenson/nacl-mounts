@@ -17,12 +17,26 @@ int __wrap_symlink(const char *path1, const char *path2) {
   return mm->kp()->symlink(path1, path2);
 }
 
+static char *to_c(const std::string& b, char *buf) {
+  memset(buf, 0, b.length()+1);
+  strncpy(buf, b.c_str(), b.length());  
+  return buf;
+}
+
 char *__wrap_getcwd(char *buf, size_t size) {
-  return mm->kp()->getcwd(buf, size);
+  std::string b;
+  if (!mm->kp()->getcwd(buf, size-1)) {
+    return NULL;
+  }
+  return to_c(b, buf);
 }
 
 char *__wrap_getwd(char *buf) {
-  return mm->kp()->getwd(buf);
+  std::string b;
+  if (!mm->kp()->getwd(&b) || b.length() >= MAXPATHLEN) {
+    return NULL;
+  }
+  return to_c(b, buf);
 }
 
 

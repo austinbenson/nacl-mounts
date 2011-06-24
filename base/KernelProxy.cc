@@ -18,7 +18,7 @@ KernelProxy::~KernelProxy() {
   file_handles_.clear();
 }
 
-int KernelProxy::chdir(const char *path) {
+int KernelProxy::chdir(const std::string& path) {
   Node *node;
   std::pair<Mount *, std::string> m_and_p;
 
@@ -87,7 +87,7 @@ int KernelProxy::RegisterFileHandle(FileHandle *fh) {
   return fildes;
 }
 
-char *KernelProxy::getcwd(char *buf, size_t size) {
+bool KernelProxy::getcwd(std::string *buf, size_t size) {
   if (size <= 0) {
     errno = EINVAL;
     return NULL;
@@ -103,11 +103,11 @@ char *KernelProxy::getcwd(char *buf, size_t size) {
   return buf;
 }
 
-char *KernelProxy::getwd(char *buf) {
+bool KernelProxy::getwd(std::string *buf) {
   return getcwd(buf, max_path_len_);
 }
 
-int KernelProxy::link(const char *path1, const char *path2) {
+int KernelProxy::link(const std::string& path1, const std::string& path2) {
   // check if path1 exists (if not, err)
   // check if path1 is a directory (if, err)
   // check if path2 exists (if, err)
@@ -118,13 +118,13 @@ int KernelProxy::link(const char *path1, const char *path2) {
   return -1;
 }
 
-int KernelProxy::symlink(const char *path1, const char *path2) {
+int KernelProxy::symlink(const std::string& path1, const std::string& path2) {
   fprintf(stderr, "symlink has not been implemented!\n");
   assert(0);
   return -1;
 }
 
-int KernelProxy::open(const char *path, int oflag, ...) {
+int KernelProxy::open(const std::string& path, int oflag) {
   FileHandle *handle;
   std::string p(path);
 
@@ -144,12 +144,33 @@ int KernelProxy::open(const char *path, int oflag, ...) {
     ReleaseLock();
     return -1;
   } else {
+    handle = m_and_p.first->MountOpen(m_and_p.second, oflag);
+  }
+  ReleaseLock();
+  return (!handle) ? -1 : RegisterFileHandle(handle);
+}
+
+int KernelProxy::open(const std::string& path, int oflag, mode_t mode) {
+ FileHandle *handle;
+  std::string p(path);
+
+  if (p.length() == 0)
+    return -1;
+
+  if (p[0] != '/')
+    p = cwd_.FormulatePath() + "/" + p;
+
+  PathHandle ph(p);
+  AcquireLock();
+  std::pair<Mount *, std::string> m_and_p =
+    mm_->GetMount(ph.FormulatePath());
+
+  if (!(m_and_p.first)) {
+    errno = ENOENT;
+    ReleaseLock();
+    return -1;
+  } else {
     if (oflag & O_CREAT) {
-      va_list argp;
-      mode_t mode;
-      va_start(argp, oflag);
-      mode = va_arg(argp, int);
-      va_end(argp);
       handle = m_and_p.first->MountOpen(m_and_p.second,
                                    oflag, mode);
     } else {
@@ -231,23 +252,9 @@ int KernelProxy::isatty(int fd) {
   return handle->isatty();
 }
 
-int KernelProxy::ioctl(int fd, unsigned long request, ...) {
-  FileHandle *handle;
-  AcquireLock();
-  // check if fd is valid and handle exists
-  if (!(handle = GetFileHandle(fd))) {
-    ReleaseLock();
-    errno = EBADF;
-    return -1;
-  }
-  // TODO(arbenson): 3rd argument not necessarily required
-  va_list argp;
-  void *p;
-  va_start(argp, request);
-  p = va_arg(argp, void *);
-  va_end(argp);
-  ReleaseLock();
-  return handle->ioctl(request, p);
+int KernelProxy::ioctl(int fd, unsigned long request) {
+  errno = ENOSYS;
+  return -1;
 }
 
 int KernelProxy::getdents(int fd, void *buf, unsigned int count) {
@@ -278,7 +285,7 @@ off_t KernelProxy::lseek(int fd, off_t offset, int whence) {
   return handle->lseek(offset, whence);
 }
 
-int KernelProxy::chmod(const char *path, mode_t mode) {
+int KernelProxy::chmod(const std::string& path, mode_t mode) {
   Node *node;
 
   AcquireLock();
@@ -292,7 +299,7 @@ int KernelProxy::chmod(const char *path, mode_t mode) {
   return node->chmod(mode);
 }
 
-int KernelProxy::remove(const char *path) {
+int KernelProxy::remove(const std::string& path) {
   Node *node;
 
   AcquireLock();
@@ -306,7 +313,7 @@ int KernelProxy::remove(const char *path) {
   return node->remove();
 }
 
-int KernelProxy::stat(const char *path, struct stat *buf) {
+int KernelProxy::stat(const std::string& path, struct stat *buf) {
   Node *node;
 
   AcquireLock();
@@ -320,7 +327,7 @@ int KernelProxy::stat(const char *path, struct stat *buf) {
   return node->stat(buf);
 }
 
-int KernelProxy::access(const char *path, int amode) {
+int KernelProxy::access(const std::string& path, int amode) {
   Node *node;
 
   AcquireLock();
@@ -334,7 +341,7 @@ int KernelProxy::access(const char *path, int amode) {
   return node->access(amode);
 }
 
-int KernelProxy::mkdir(const char *path, mode_t mode) {
+int KernelProxy::mkdir(const std::string& path, mode_t mode) {
   AcquireLock();
   std::string p(path);
   if (p.length() == 0)
@@ -358,7 +365,7 @@ int KernelProxy::mkdir(const char *path, mode_t mode) {
   }
 }
 
-int KernelProxy::rmdir(const char *path) {
+int KernelProxy::rmdir(const std::string& path) {
   Node *node;
 
   AcquireLock();

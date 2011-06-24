@@ -244,9 +244,13 @@ TEST(PathHandleTest, AppendPathAndFormulateRawPath) {
   EXPECT_STREQ("/", ph1->FormulatePath().c_str());
 
   ph2 = new PathHandle("");
+  ph2->set_is_absolute(true);
   EXPECT_STREQ("/", ph2->FormulateRawPath().c_str());
   ph2->AppendPath("////////////");
   EXPECT_STREQ("/", ph2->FormulateRawPath().c_str());
+
+  ph2->SetPath("");
+  EXPECT_STREQ("", ph2->FormulateRawPath().c_str());
 
   delete ph1;
   delete ph2;
@@ -265,7 +269,10 @@ TEST(PathHandleTest, FormulatePath) {
   ph1->AppendPath("usr/lib/../bin/.././etc/../local/../share");
   EXPECT_STREQ("/usr/share", ph1->FormulatePath().c_str());
   delete ph1;
+
   ph2= new PathHandle("./");
+  EXPECT_STREQ("", ph2->FormulatePath().c_str());
+  ph2->set_is_absolute(true);
   EXPECT_STREQ("/", ph2->FormulatePath().c_str());
   ph2->AppendPath("");
   EXPECT_STREQ("/", ph2->FormulatePath().c_str());
@@ -274,6 +281,8 @@ TEST(PathHandleTest, FormulatePath) {
   ph2->AppendPath("/////////////////////////////////////////////");
   EXPECT_STREQ("/USR/local/SHARE", ph2->FormulatePath().c_str());
   ph3 = new PathHandle("..");
+  EXPECT_STREQ("", ph3->FormulatePath().c_str());
+  ph3->set_is_absolute(true);
   EXPECT_STREQ("/", ph3->FormulatePath().c_str());
   ph4 = new PathHandle("/node1/node3/../../node1/./");
   EXPECT_STREQ("/node1", ph4->FormulatePath().c_str());
@@ -284,5 +293,4 @@ TEST(PathHandleTest, FormulatePath) {
   delete ph3;
   delete ph4;
 }
-
 

@@ -32,13 +32,10 @@ class FileHandle {
   virtual int ioctl(unsigned long request, ...) { return 0; }
   virtual int getdents(void *buf, unsigned int count) { return 0; }
 
-  void set_fd(int fd) { fd_ = fd; }
-  int fd(void) { return fd_; }
   void set_in_use(bool in_use) { in_use_ = in_use; }
   bool in_use(void) { return in_use_; }
 
  protected:
-  int fd_;
   bool in_use_;
 };
 

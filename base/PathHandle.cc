@@ -8,7 +8,7 @@
 
 PathHandle::PathHandle(std::string path) {
   path_ = Split(path, '/');
-  is_absolute_ = true;
+  is_absolute_ = !path.empty() && path[0] == '/';
   PathCollapse();
 }
 
@@ -20,7 +20,7 @@ std::string PathHandle::FormulateRawPath(void) {
     for (it = path_.begin(); it != path_.end(); ++it)
       path += AppendSlash(*it);
     // cut off the final '/'
-    return path.length() == 1 ? path : path.substr(0, path.length()-1);
+    return path.length() <= 1 ? path : path.substr(0, path.length()-1);
 }
 
 std::string PathHandle::FormulatePath(void) {
@@ -38,6 +38,7 @@ void PathHandle::SetPath(std::string path) {
   // empty list
   std::list<std::string> path_components;
   path_ = path_components;
+  is_absolute_ = !path.empty() && path[0] == '/';
   AppendPath(path);
 }
 
@@ -109,7 +110,7 @@ std::list<std::string> PathHandle::Split(std::string path, char c) {
     }
     // length of substring == next - ind
     part = path.substr(ind, next-ind);
-    if (part.length() > 0)
+    if (!part.empty())
       components.push_back(part);
     ind = next+1;
   }

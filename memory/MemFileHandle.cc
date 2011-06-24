@@ -6,7 +6,6 @@
 #include "MemFileHandle.h"
 
 MemFileHandle::MemFileHandle() {
-  fd_ = -1;
   mount_ = NULL;
   node_ = NULL;
   used_ = 0;
@@ -161,10 +160,6 @@ int MemFileHandle::fstat(struct stat *buf) {
 }
 
 int MemFileHandle::close(void) {
-  if (fd_ == STDIN_FILENO ||
-      fd_ == STDOUT_FILENO ||
-      fd_ == STDERR_FILENO) return 0;
-
   mount_->AcquireLock();
   node_->DecrementUseCount();
   in_use_ = false;

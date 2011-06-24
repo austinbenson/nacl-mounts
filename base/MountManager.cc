@@ -141,13 +141,11 @@ int MountManager::RegisterFileHandle(FileHandle *fh) {
   // get first available fd
   for (fildes = 0; fildes < file_handles_.size(); ++fildes) {
     if (!(file_handles_[fildes])) {
-      fh->set_fd(fildes);
       fh->set_in_use(true);
       file_handles_[fildes] = fh;
       return fildes;
     } else if (!(file_handles_[fildes]->in_use())) {
       delete file_handles_[fildes];
-      fh->set_fd(fildes);
       fh->set_in_use(true);
       file_handles_[fildes] = fh;
       return fildes;
@@ -155,7 +153,6 @@ int MountManager::RegisterFileHandle(FileHandle *fh) {
   }
 
   file_handles_.push_back(fh);
-  fh->set_fd(fildes);
   fh->set_in_use(true);
   ReleaseLock();
   return fildes;

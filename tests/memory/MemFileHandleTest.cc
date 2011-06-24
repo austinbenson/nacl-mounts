@@ -123,7 +123,6 @@ TEST(MemFileHandleTest, close) {
   MemNode *node = CreateNode("node", NULL, mount, true);
   MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
 
-  handle->set_fd(7);
   EXPECT_EQ(0, handle->close());
   EXPECT_EQ(false, handle->in_use());
 

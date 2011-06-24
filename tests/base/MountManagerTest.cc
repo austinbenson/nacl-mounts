@@ -87,24 +87,24 @@ TEST(MountManagerTest, RoutedSysCalls) {
   const char *path = "/hi/there";
   int fd = 5;
 
-  EXPECT_EQ(-1, mm->chmod(path, 0));
-  EXPECT_EQ(-1, mm->remove(path));
-  EXPECT_EQ(-1, mm->stat(path, NULL));
-  EXPECT_EQ(-1, mm->access(path, 0));
-  EXPECT_EQ(0, mm->mkdir(path, 0));
-  EXPECT_EQ(-1, mm->rmdir(path));
-  EXPECT_EQ(-1, mm->open(path, 0));
-  EXPECT_EQ(-1, mm->open(path, 0, 0));  // open has varargs
+  EXPECT_EQ(-1, mm->kp()->chmod(path, 0));
+  EXPECT_EQ(-1, mm->kp()->remove(path));
+  EXPECT_EQ(-1, mm->kp()->stat(path, NULL));
+  EXPECT_EQ(-1, mm->kp()->access(path, 0));
+  EXPECT_EQ(0, mm->kp()->mkdir(path, 0));
+  EXPECT_EQ(-1, mm->kp()->rmdir(path));
+  EXPECT_EQ(-1, mm->kp()->open(path, 0));
+  EXPECT_EQ(-1, mm->kp()->open(path, 0, 0));  // open has varargs
 
-  EXPECT_EQ(-1, mm->close(fd));
-  EXPECT_EQ(-1, mm->close(-10));
-  EXPECT_EQ(-1, mm->read(fd, NULL, 0));
-  EXPECT_EQ(-1, mm->write(fd, NULL, 0));
-  EXPECT_EQ(-1, mm->fstat(fd, NULL));
-  EXPECT_EQ(-1, mm->isatty(fd));
-  EXPECT_EQ(-1, mm->getdents(fd, NULL, 0));
-  EXPECT_EQ(-1, mm->lseek(fd, 0, 0));
-  EXPECT_EQ(-1, mm->ioctl(fd, 0, 0));
+  EXPECT_EQ(-1, mm->kp()->close(fd));
+  EXPECT_EQ(-1, mm->kp()->close(-10));
+  EXPECT_EQ(-1, mm->kp()->read(fd, NULL, 0));
+  EXPECT_EQ(-1, mm->kp()->write(fd, NULL, 0));
+  EXPECT_EQ(-1, mm->kp()->fstat(fd, NULL));
+  EXPECT_EQ(-1, mm->kp()->isatty(fd));
+  EXPECT_EQ(-1, mm->kp()->getdents(fd, NULL, 0));
+  EXPECT_EQ(-1, mm->kp()->lseek(fd, 0, 0));
+  EXPECT_EQ(-1, mm->kp()->ioctl(fd, 0, 0));
 
   EXPECT_EQ(0, mm->RemoveMount("/"));
 
@@ -117,53 +117,50 @@ TEST(MountManagerTest, chdir_cwd_wd) {
   mnt1 = new MemMount();
   // put in a mount
   EXPECT_EQ(0, mm->AddMount(mnt1, "/"));
-  EXPECT_STREQ("/", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/", mm->getwd(buf));
+  EXPECT_STREQ("/", mm->kp()->getcwd(buf, 300));
+  EXPECT_STREQ("/", mm->kp()->getwd(buf));
 
-  EXPECT_EQ(0, mm->mkdir("/hello/", 0));
-  EXPECT_EQ(0, mm->mkdir("/hello/world", 0));
+  EXPECT_EQ(0, mm->kp()->mkdir("/hello/", 0));
+  EXPECT_EQ(0, mm->kp()->mkdir("/hello/world", 0));
 
 
-  EXPECT_EQ(0, mm->chdir("hello/world"));
-  EXPECT_STREQ("/hello/world", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/hello/world", mm->getwd(buf));
-  EXPECT_EQ(0, mm->chdir(".."));
-  EXPECT_STREQ("/hello", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/hello", mm->getwd(buf));
-  EXPECT_EQ(0, mm->chdir("world"));
-  EXPECT_STREQ("/hello/world", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/hello/world", mm->getwd(buf));
-  EXPECT_EQ(0, mm->chdir("."));
-  EXPECT_STREQ("/hello/world", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/hello/world", mm->getwd(buf));
-  EXPECT_EQ(-1, mm->chdir("hi"));
-  EXPECT_EQ(-1, mm->chdir("/hi"));
-  EXPECT_EQ(0, mm->chdir(".."));
-  EXPECT_STREQ("/hello", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/hello", mm->getwd(buf));
+  EXPECT_EQ(0, mm->kp()->chdir("/hello/world"));
+  EXPECT_STREQ("/hello/world", mm->kp()->getcwd(buf, 300));
+  EXPECT_STREQ("/hello/world", mm->kp()->getwd(buf));
+  EXPECT_EQ(0, mm->kp()->chdir("/hello"));
+  EXPECT_STREQ("/hello", mm->kp()->getcwd(buf, 300));
+  EXPECT_STREQ("/hello", mm->kp()->getwd(buf));
+  EXPECT_EQ(0, mm->kp()->chdir("/hello/world"));
+  EXPECT_STREQ("/hello/world", mm->kp()->getcwd(buf, 300));
+  EXPECT_STREQ("/hello/world", mm->kp()->getwd(buf));
+  EXPECT_EQ(0, mm->kp()->chdir("/hello/world"));
+  EXPECT_STREQ("/hello/world", mm->kp()->getcwd(buf, 300));
+  EXPECT_STREQ("/hello/world", mm->kp()->getwd(buf));
+  EXPECT_EQ(-1, mm->kp()->chdir("/hello/world/hi"));
+  EXPECT_EQ(-1, mm->kp()->chdir("/hi"));
+  EXPECT_EQ(0, mm->kp()->chdir("/"));
+  EXPECT_STREQ("/", mm->kp()->getcwd(buf, 300));
+  EXPECT_STREQ("/", mm->kp()->getwd(buf));
 
   mnt2 = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt2, "/usr/mount2"));
   EXPECT_EQ(-2, mm->AddMount(NULL, "/usr/mount3"));
   mnt3 = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt3, "/usr/mount3"));
-  EXPECT_EQ(0, mm->mkdir("/usr", 0));
-  EXPECT_EQ(-1, mm->mkdir("/usr/mount2", 0));
-  EXPECT_EQ(0, mm->mkdir("/usr/mount2/hello", 0));
-  EXPECT_EQ(0, mm->mkdir("/usr/mount2/hello/world", 0));
-  EXPECT_EQ(-1, mm->mkdir("/usr/mount3", 0));
-  EXPECT_EQ(0, mm->chdir("/usr/mount2/hello/world"));
-  EXPECT_STREQ("/usr/mount2/hello/world", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/usr/mount2/hello/world", mm->getwd(buf));
-  EXPECT_EQ(0, mm->chdir("../../../mount3"));
-  EXPECT_STREQ("/usr/mount3", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/usr/mount3", mm->getwd(buf));
-  EXPECT_EQ(0, mm->chdir("/"));
-  EXPECT_STREQ("/", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/", mm->getwd(buf));
-  EXPECT_EQ(0, mm->chdir("usr/mount2/hello"));
-  EXPECT_STREQ("/usr/mount2/hello", mm->getcwd(buf, 300));
-  EXPECT_STREQ("/usr/mount2/hello", mm->getwd(buf));
+  EXPECT_EQ(0, mm->kp()->mkdir("/usr", 0));
+  EXPECT_EQ(-1, mm->kp()->mkdir("/usr/mount2", 0));
+  EXPECT_EQ(0, mm->kp()->mkdir("/usr/mount2/hello", 0));
+  EXPECT_EQ(0, mm->kp()->mkdir("/usr/mount2/hello/world", 0));
+  EXPECT_EQ(-1, mm->kp()->mkdir("/usr/mount3", 0));
+  EXPECT_EQ(0, mm->kp()->chdir("/usr/mount2/hello/world"));
+  EXPECT_STREQ("/usr/mount2/hello/world", mm->kp()->getcwd(buf, 300));
+  EXPECT_STREQ("/usr/mount2/hello/world", mm->kp()->getwd(buf));
+  EXPECT_EQ(0, mm->kp()->chdir("/"));
+  EXPECT_STREQ("/", mm->kp()->getcwd(buf, 300));
+  EXPECT_STREQ("/", mm->kp()->getwd(buf));
+  EXPECT_EQ(0, mm->kp()->chdir("/usr/mount2/hello"));
+  EXPECT_STREQ("/usr/mount2/hello", mm->kp()->getcwd(buf, 300));
+  EXPECT_STREQ("/usr/mount2/hello", mm->kp()->getwd(buf));
 
   mm->ClearMounts();
 }
@@ -172,6 +169,6 @@ TEST(MountManagerTest, chdir_cwd_wd) {
 TEST(MountManagerTest, BasicOpen) {
   MemMount *mnt = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt, "/"));
-  EXPECT_EQ(0, mm->open("test.txt", O_CREAT, 0));
+  EXPECT_EQ(0, mm->kp()->open("/test.txt", O_CREAT, 0));
 }
 

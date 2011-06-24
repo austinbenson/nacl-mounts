@@ -104,43 +104,45 @@ TEST(MountManagerTest, RoutedSysCalls) {
   EXPECT_EQ(-1, mm->kp()->isatty(fd));
   EXPECT_EQ(-1, mm->kp()->getdents(fd, NULL, 0));
   EXPECT_EQ(-1, mm->kp()->lseek(fd, 0, 0));
-  EXPECT_EQ(-1, mm->kp()->ioctl(fd, 0, 0));
+  EXPECT_EQ(-1, mm->kp()->ioctl(fd, 0));
 
   EXPECT_EQ(0, mm->RemoveMount("/"));
 
   mm->ClearMounts();
 }
 
+#define CHECK_WD(want) { \
+  std::string wd; \
+  EXPECT_TRUE(mm->kp()->getcwd(&wd, 300)); \
+  EXPECT_EQ(want, wd); \
+  wd.clear(); \
+  EXPECT_TRUE(mm->kp()->getwd(&wd)); \
+  EXPECT_EQ(want, wd); \
+}
+
 TEST(MountManagerTest, chdir_cwd_wd) {
   MemMount *mnt1, *mnt2, *mnt3;
-  char *buf = reinterpret_cast<char *>(malloc(300));
   mnt1 = new MemMount();
   // put in a mount
   EXPECT_EQ(0, mm->AddMount(mnt1, "/"));
-  EXPECT_STREQ("/", mm->kp()->getcwd(buf, 300));
-  EXPECT_STREQ("/", mm->kp()->getwd(buf));
+
+  CHECK_WD("/");
 
   EXPECT_EQ(0, mm->kp()->mkdir("/hello/", 0));
   EXPECT_EQ(0, mm->kp()->mkdir("/hello/world", 0));
 
 
   EXPECT_EQ(0, mm->kp()->chdir("/hello/world"));
-  EXPECT_STREQ("/hello/world", mm->kp()->getcwd(buf, 300));
-  EXPECT_STREQ("/hello/world", mm->kp()->getwd(buf));
+  CHECK_WD("/hello/world");
   EXPECT_EQ(0, mm->kp()->chdir("/hello"));
-  EXPECT_STREQ("/hello", mm->kp()->getcwd(buf, 300));
-  EXPECT_STREQ("/hello", mm->kp()->getwd(buf));
+  CHECK_WD("/hello");
   EXPECT_EQ(0, mm->kp()->chdir("/hello/world"));
-  EXPECT_STREQ("/hello/world", mm->kp()->getcwd(buf, 300));
-  EXPECT_STREQ("/hello/world", mm->kp()->getwd(buf));
-  EXPECT_EQ(0, mm->kp()->chdir("/hello/world"));
-  EXPECT_STREQ("/hello/world", mm->kp()->getcwd(buf, 300));
-  EXPECT_STREQ("/hello/world", mm->kp()->getwd(buf));
+  CHECK_WD("/hello/world");
   EXPECT_EQ(-1, mm->kp()->chdir("/hello/world/hi"));
+  CHECK_WD("/hello/world");
   EXPECT_EQ(-1, mm->kp()->chdir("/hi"));
   EXPECT_EQ(0, mm->kp()->chdir("/"));
-  EXPECT_STREQ("/", mm->kp()->getcwd(buf, 300));
-  EXPECT_STREQ("/", mm->kp()->getwd(buf));
+  CHECK_WD("/");
 
   mnt2 = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt2, "/usr/mount2"));
@@ -153,14 +155,13 @@ TEST(MountManagerTest, chdir_cwd_wd) {
   EXPECT_EQ(0, mm->kp()->mkdir("/usr/mount2/hello/world", 0));
   EXPECT_EQ(-1, mm->kp()->mkdir("/usr/mount3", 0));
   EXPECT_EQ(0, mm->kp()->chdir("/usr/mount2/hello/world"));
-  EXPECT_STREQ("/usr/mount2/hello/world", mm->kp()->getcwd(buf, 300));
-  EXPECT_STREQ("/usr/mount2/hello/world", mm->kp()->getwd(buf));
+  CHECK_WD("/usr/mount2/hello/world");
+
   EXPECT_EQ(0, mm->kp()->chdir("/"));
-  EXPECT_STREQ("/", mm->kp()->getcwd(buf, 300));
-  EXPECT_STREQ("/", mm->kp()->getwd(buf));
+  CHECK_WD("/");
+
   EXPECT_EQ(0, mm->kp()->chdir("/usr/mount2/hello"));
-  EXPECT_STREQ("/usr/mount2/hello", mm->kp()->getcwd(buf, 300));
-  EXPECT_STREQ("/usr/mount2/hello", mm->kp()->getwd(buf));
+  CHECK_WD("/usr/mount2/hello");
 
   mm->ClearMounts();
 }
@@ -171,4 +172,3 @@ TEST(MountManagerTest, BasicOpen) {
   EXPECT_EQ(0, mm->AddMount(mnt, "/"));
   EXPECT_EQ(0, mm->kp()->open("/test.txt", O_CREAT, 0));
 }
-

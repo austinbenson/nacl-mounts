@@ -123,13 +123,14 @@ int KernelProxy::symlink(const std::string& path1, const std::string& path2) {
 
 int KernelProxy::open(const std::string& path, int oflag) {
   FileHandle *handle;
-  std::string p(path);
-
-  if (p.length() == 0)
+  std::string p = path;
+  if (p == "") {
     return -1;
+  }
 
-  if (p[0] != '/')
+  if (p[0] != '/') {
     p = cwd_.FormulatePath() + "/" + p;
+  }
 
   PathHandle ph(p);
   AcquireLock();
@@ -148,14 +149,15 @@ int KernelProxy::open(const std::string& path, int oflag) {
 }
 
 int KernelProxy::open(const std::string& path, int oflag, mode_t mode) {
- FileHandle *handle;
-  std::string p(path);
-
-  if (p.length() == 0)
+  FileHandle *handle;
+  std::string p = path;
+  if (p == "") {
     return -1;
+  }
 
-  if (p[0] != '/')
+  if (p[0] != '/') {
     p = cwd_.FormulatePath() + "/" + p;
+  }
 
   PathHandle ph(p);
   AcquireLock();
@@ -169,7 +171,7 @@ int KernelProxy::open(const std::string& path, int oflag, mode_t mode) {
   } else {
     if (oflag & O_CREAT) {
       handle = m_and_p.first->MountOpen(m_and_p.second,
-                                   oflag, mode);
+                                        oflag, mode);
     } else {
       handle = m_and_p.first->MountOpen(m_and_p.second, oflag);
     }

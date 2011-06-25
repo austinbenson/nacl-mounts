@@ -4,7 +4,7 @@
  * found in the LICENSE file.
  */
 
-#include "../../memory/MemFileHandle.h"
+#include "../../base/FileHandle.h"
 #include "../../memory/MemMount.h"
 #include "../../memory/MemNode.h"
 #include "../common/common.h"
@@ -13,7 +13,7 @@
 TEST(MemFileHandleTest, lseek) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
-  MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
+  FileHandle *handle = CreateFileHandle(mount, node, 1, 0, 0);
 
   int whence = 0;
   // check for when node is a directory
@@ -60,7 +60,7 @@ TEST(MemFileHandleTest, getdents) {
   node->AddChild(child3);
   node->AddChild(child4);
   node->AddChild(child5);
-  MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
+  FileHandle *handle = CreateFileHandle(mount, node, 1, 0, 0);
   struct dirent *buf;
 
   int size = 5*sizeof(struct dirent);
@@ -100,7 +100,7 @@ TEST(MemFileHandleTest, getdents) {
 TEST(MemFileHandleTest, fstat) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
-  MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
+  FileHandle *handle = CreateFileHandle(mount, node, 1, 0, 0);
 
   struct stat *buf = (struct stat *)malloc(sizeof(struct stat));
   // fstat should handle zero-ing out the buffer
@@ -121,7 +121,7 @@ TEST(MemFileHandleTest, fstat) {
 TEST(MemFileHandleTest, close) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
-  MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
+  FileHandle *handle = CreateFileHandle(mount, node, 1, 0, 0);
 
   EXPECT_EQ(0, handle->close());
   EXPECT_EQ(false, handle->in_use());
@@ -134,7 +134,7 @@ TEST(MemFileHandleTest, close) {
 TEST(MemFileHandleTest, ioctl) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
-  MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
+  FileHandle *handle = CreateFileHandle(mount, node, 1, 0, 0);
 
   // expecting ioctl to not be implemented
   EXPECT_EQ(-1, handle->ioctl(0, NULL));
@@ -147,7 +147,7 @@ TEST(MemFileHandleTest, ioctl) {
 TEST(MemFileHandleTest, write) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
-  MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, O_RDWR);
+  FileHandle *handle = CreateFileHandle(mount, node, 1, 0, O_RDWR);
   char *data;
   int num_to_match = 4;
   char *buf;
@@ -202,7 +202,7 @@ TEST(MemFileHandleTest, write) {
 TEST(MemFileHandleTest, read) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
-  MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, O_RDWR);
+  FileHandle *handle = CreateFileHandle(mount, node, 1, 0, O_RDWR);
   int num_to_match = 4;
   char *buf_r, *buf_w, *data;
 

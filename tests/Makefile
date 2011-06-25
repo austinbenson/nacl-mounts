@@ -78,6 +78,10 @@ AllTest.o: $(COMMON_TEST_DIR)/AllTest.cc $(GTEST_HEADERS)
 Node.o: $(USER_BASE_DIR)/Node.cc $(USER_BASE_DIR)/Node.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_BASE_DIR)/Node.cc
 
+FileHandle.o: $(USER_BASE_DIR)/FileHandle.cc \
+              $(USER_BASE_DIR)/FileHandle.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_BASE_DIR)/FileHandle.cc
+
 KernelProxy.o: $(USER_BASE_DIR)/KernelProxy.cc $(USER_BASE_DIR)/KernelProxy.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_BASE_DIR)/KernelProxy.cc
 
@@ -88,10 +92,6 @@ MemMount.o: $(USER_MEM_DIR)/MemMount.cc \
             $(USER_MEM_DIR)/MemMount.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_MEM_DIR)/MemMount.cc
 
-MemFileHandle.o: $(USER_MEM_DIR)/MemFileHandle.cc \
-                 $(USER_MEM_DIR)/MemFileHandle.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_MEM_DIR)/MemFileHandle.cc
-
 MountManager.o: KernelProxy.o $(USER_BASE_DIR)/MountManager.cc \
                 $(USER_BASE_DIR)/MountManager.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_BASE_DIR)/MountManager.cc
@@ -101,6 +101,6 @@ PathHandle.o: $(USER_BASE_DIR)/PathHandle.cc \
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_BASE_DIR)/PathHandle.cc
 
 All_test: AllTest.o MountManager.o KernelProxy.o Node.o PathHandle.o \
-          MemMount.o MemNode.o MemFileHandle.o gtest_main.a
+          MemMount.o MemNode.o FileHandle.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
 

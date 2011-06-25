@@ -19,7 +19,7 @@ MemMount::~MemMount() {
 FileHandle *MemMount::MountOpen(std::string path, int oflag, ...) {
   Node *node;
   Node *parent;
-  MemFileHandle *handle;
+  FileHandle *handle;
 
   AcquireLock();
 
@@ -75,7 +75,7 @@ FileHandle *MemMount::MountOpen(std::string path, int oflag, ...) {
 
   node->IncrementUseCount();
   // Setup file handle.
-  handle = new MemFileHandle();
+  handle = new FileHandle();
   handle->set_mount(this);
   handle->set_node(node);
   handle->set_flags(oflag);

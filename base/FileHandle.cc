@@ -3,9 +3,10 @@
  * Use of this source code is governed by a BSD-style license that be
  * found in the LICENSE file.
  */
-#include "MemFileHandle.h"
+#include "FileHandle.h"
+#include "Mount.h"
 
-MemFileHandle::MemFileHandle() {
+FileHandle::FileHandle() {
   mount_ = NULL;
   node_ = NULL;
   used_ = 0;
@@ -13,10 +14,10 @@ MemFileHandle::MemFileHandle() {
   flags_ = 0;
 }
 
-MemFileHandle::~MemFileHandle() {
+FileHandle::~FileHandle() {
 }
 
-off_t MemFileHandle::lseek(off_t offset, int whence) {
+off_t FileHandle::lseek(off_t offset, int whence) {
   off_t next;
   mount_->AcquireLock();
 
@@ -55,7 +56,7 @@ off_t MemFileHandle::lseek(off_t offset, int whence) {
   return next;
 }
 
-ssize_t MemFileHandle::read(void *buf, size_t nbyte) {
+ssize_t FileHandle::read(void *buf, size_t nbyte) {
   size_t len;
   mount_->AcquireLock();
 
@@ -78,7 +79,7 @@ ssize_t MemFileHandle::read(void *buf, size_t nbyte) {
   return len;
 }
 
-ssize_t MemFileHandle::write(const void *buf, size_t nbyte) {
+ssize_t FileHandle::write(const void *buf, size_t nbyte) {
   size_t len = 0;
   size_t next = 0;
 
@@ -111,7 +112,7 @@ ssize_t MemFileHandle::write(const void *buf, size_t nbyte) {
   return nbyte;
 }
 
-int MemFileHandle::getdents(void *buf, unsigned int count) {
+int FileHandle::getdents(void *buf, unsigned int count) {
   int pos;
   struct dirent *dir;
   int bytes_read;
@@ -152,14 +153,14 @@ int MemFileHandle::getdents(void *buf, unsigned int count) {
   return bytes_read;
 }
 
-int MemFileHandle::fstat(struct stat *buf) {
+int FileHandle::fstat(struct stat *buf) {
   mount_->AcquireLock();
   node_->raw_stat(buf);
   mount_->ReleaseLock();
   return 0;
 }
 
-int MemFileHandle::close(void) {
+int FileHandle::close(void) {
   mount_->AcquireLock();
   node_->DecrementUseCount();
   in_use_ = false;
@@ -167,6 +168,6 @@ int MemFileHandle::close(void) {
   return 0;
 }
 
-int MemFileHandle::ioctl(unsigned long request, ...) {
+int FileHandle::ioctl(unsigned long request, ...) {
   return -1;
 }

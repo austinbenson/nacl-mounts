@@ -6,15 +6,20 @@
 #include "Entry.h"
 
 int __wrap_chdir(const char *path) {
-  return mm->kp()->chdir(path);
+  const std::string& p(path);
+  return mm->kp()->chdir(p);
 }
 
 int __wrap_link(const char *path1, const char *path2) {
-  return mm->kp()->link(path1, path2);
+  const std::string& p1(path1);
+  const std::string& p2(path2);
+  return mm->kp()->link(p1, p2);
 }
 
 int __wrap_symlink(const char *path1, const char *path2) {
-  return mm->kp()->symlink(path1, path2);
+  const std::string& p1(path1);
+  const std::string& p2(path2);
+  return mm->kp()->symlink(p1, p2);
 }
 
 static char *to_c(const std::string& b, char *buf) {
@@ -25,7 +30,7 @@ static char *to_c(const std::string& b, char *buf) {
 
 char *__wrap_getcwd(char *buf, size_t size) {
   std::string b;
-  if (!mm->kp()->getcwd(buf, size-1)) {
+  if (!mm->kp()->getcwd(&b, size-1)) {
     return NULL;
   }
   return to_c(b, buf);
@@ -41,40 +46,47 @@ char *__wrap_getwd(char *buf) {
 
 
 int __wrap_chmod(const char *path, mode_t mode) {
-  return mm->kp()->chmod(path, mode);
+  const std::string& p(path);
+  return mm->kp()->chmod(p, mode);
 }
 
 int __wrap_remove(const char *path) {
-  return mm->kp()->remove(path);
+  const std::string& p(path);
+  return mm->kp()->remove(p);
 }
 
 int __wrap_stat(const char *path, struct stat *buf) {
-  return mm->kp()->stat(path, buf);
+  const std::string& p(path);
+  return mm->kp()->stat(p, buf);
 }
 
 int __wrap_access(const char *path, int amode) {
-  return mm->kp()->access(path, amode);
+  const std::string& p(path);
+  return mm->kp()->access(p, amode);
 }
 
 int __wrap_mkdir(const char *path, mode_t mode) {
-  return mm->kp()->mkdir(path, mode);
+  const std::string& p(path);
+  return mm->kp()->mkdir(p, mode);
 }
 
 int __wrap_rmdir(const char *path) {
-  return mm->kp()->chdir(path);
+  const std::string& p(path);
+  return mm->kp()->chdir(p);
 }
 
 int __wrap_open(const char *path, int oflag, ...) {
+  const std::string& p(path);
   if (oflag & O_CREAT) {
     va_list argp;
     mode_t mode;
     va_start(argp, oflag);
     mode = va_arg(argp, int);
     va_end(argp);
-    return mm->kp()->open(path, oflag, mode);
+    return mm->kp()->open(p, oflag, mode);
   }
 
-  return mm->kp()->open(path, oflag);
+  return mm->kp()->open(p, oflag);
 }
 
 
@@ -107,11 +119,7 @@ off_t __wrap_lseek(int fd, off_t offset, int whence) {
 }
 
 int __wrap_ioctl(int fd, unsigned long request, ...) {
-  va_list argp;
-  void *p;
-  va_start(argp, request);
-  p = va_arg(argp, void *);
-  va_end(argp);
-  return mm->kp()->ioctl(fd, request, p);
+  // TODO(arbenson): handle varargs
+  return mm->kp()->ioctl(fd, request);
 }
 

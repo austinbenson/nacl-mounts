@@ -6,20 +6,15 @@
 #include "Entry.h"
 
 int __wrap_chdir(const char *path) {
-  const std::string& p(path);
-  return mm->kp()->chdir(p);
+  return mm->kp()->chdir(path);
 }
 
 int __wrap_link(const char *path1, const char *path2) {
-  const std::string& p1(path1);
-  const std::string& p2(path2);
-  return mm->kp()->link(p1, p2);
+  return mm->kp()->link(path1, path2);
 }
 
 int __wrap_symlink(const char *path1, const char *path2) {
-  const std::string& p1(path1);
-  const std::string& p2(path2);
-  return mm->kp()->symlink(p1, p2);
+  return mm->kp()->symlink(path1, path2);
 }
 
 static char *to_c(const std::string& b, char *buf) {
@@ -46,47 +41,40 @@ char *__wrap_getwd(char *buf) {
 
 
 int __wrap_chmod(const char *path, mode_t mode) {
-  const std::string& p(path);
-  return mm->kp()->chmod(p, mode);
+  return mm->kp()->chmod(path, mode);
 }
 
 int __wrap_remove(const char *path) {
-  const std::string& p(path);
-  return mm->kp()->remove(p);
+  return mm->kp()->remove(path);
 }
 
 int __wrap_stat(const char *path, struct stat *buf) {
-  const std::string& p(path);
-  return mm->kp()->stat(p, buf);
+  return mm->kp()->stat(path, buf);
 }
 
 int __wrap_access(const char *path, int amode) {
-  const std::string& p(path);
-  return mm->kp()->access(p, amode);
+  return mm->kp()->access(path, amode);
 }
 
 int __wrap_mkdir(const char *path, mode_t mode) {
-  const std::string& p(path);
-  return mm->kp()->mkdir(p, mode);
+  return mm->kp()->mkdir(path, mode);
 }
 
 int __wrap_rmdir(const char *path) {
-  const std::string& p(path);
-  return mm->kp()->chdir(p);
+  return mm->kp()->chdir(path);
 }
 
 int __wrap_open(const char *path, int oflag, ...) {
-  const std::string& p(path);
   if (oflag & O_CREAT) {
     va_list argp;
     mode_t mode;
     va_start(argp, oflag);
     mode = va_arg(argp, int);
     va_end(argp);
-    return mm->kp()->open(p, oflag, mode);
+    return mm->kp()->open(path, oflag, mode);
   }
 
-  return mm->kp()->open(p, oflag);
+  return mm->kp()->open(path, oflag);
 }
 
 

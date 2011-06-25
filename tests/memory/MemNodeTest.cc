@@ -30,17 +30,17 @@ TEST(MemNodeTest, AddChildren) {
 
   std::list<MemNode *>::iterator it;
   it = children->begin();
-  EXPECT_STREQ(node2->name().c_str(), (*it)->name().c_str());
+  EXPECT_EQ(node2->name(), (*it)->name());
   children2 = (*it)->children();
   EXPECT_EQ(1, static_cast<int>(children2->size()));
 
   ++it;
-  EXPECT_STREQ(node3->name().c_str(), (*it)->name().c_str());
+  EXPECT_EQ(node3->name(), (*it)->name());
   children3 = (*it)->children();
   EXPECT_EQ(NULL, children3);
 
   it = children2->begin();
-  EXPECT_STREQ(node5->name().c_str(), (*it)->name().c_str());
+  EXPECT_EQ(node5->name(), (*it)->name());
   children2 = (*it)->children();
   EXPECT_EQ(NULL, children2);
 

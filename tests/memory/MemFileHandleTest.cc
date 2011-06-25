@@ -67,7 +67,7 @@ TEST(MemFileHandleTest, getdents) {
   buf = reinterpret_cast<struct dirent *>(calloc(size, 1));
 
   EXPECT_EQ(size, handle->getdents(buf, size));
-  EXPECT_STREQ(child3->name().c_str(), (buf+2)->d_name);
+  EXPECT_EQ(child3->name(), (buf+2)->d_name);
 
   free(buf);
   size = 6*sizeof(struct dirent);
@@ -78,14 +78,14 @@ TEST(MemFileHandleTest, getdents) {
 
   EXPECT_EQ(static_cast<int>(3*sizeof(struct dirent)),
             handle->getdents(buf, size));
-  EXPECT_STREQ(child3->name().c_str(), (buf+2)->d_name);
-  EXPECT_STRNE(child4->name().c_str(), (buf+3)->d_name);
+  EXPECT_EQ(child3->name(), (buf+2)->d_name);
+  EXPECT_NE(child4->name(), (buf+3)->d_name);
 
   free(buf);
   size = 2*sizeof(struct dirent);
   buf = reinterpret_cast<struct dirent *>(malloc(size));
   EXPECT_EQ(size, handle->getdents(buf, size));
-  EXPECT_STREQ(child1->name().c_str(), buf->d_name);
+  EXPECT_EQ(child1->name(), buf->d_name);
 
   delete child1;
   delete child2;

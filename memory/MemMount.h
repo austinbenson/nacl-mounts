@@ -56,8 +56,8 @@ class MemMount: public Mount {
   Node *root() { return root_; }
 
   // concurrency tools
-  void AcquireLock(void);
-  void ReleaseLock(void);
+  virtual void AcquireLock(void);
+  virtual void ReleaseLock(void);
 
  private:
   PathHandle *path_handle_;

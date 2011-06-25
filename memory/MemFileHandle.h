@@ -62,10 +62,10 @@ class MemFileHandle : public FileHandle {
   // file handle
   void set_offset(int offset) { offset_ = offset; }
 
-  void set_mount(MemMount *mount) { mount_ = mount; }
+  void set_mount(Mount *mount) { mount_ = mount; }
 
  private:
-  MemMount *mount_;
+  Mount *mount_;
   Node *node_;
   int used_;
   off_t offset_;

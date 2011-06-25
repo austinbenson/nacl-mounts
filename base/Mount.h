@@ -33,6 +33,9 @@ class Mount {
   // mkdir() creates a directory at path (representing the mkdir
   // sys call).
   virtual int mkdir(std::string path, mode_t mode) { return 0; }
+
+  virtual void AcquireLock(void) {}
+  virtual void ReleaseLock(void) {}
 };
 
 class Mount2 {

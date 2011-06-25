@@ -3,48 +3,71 @@
  * Use of this source code is governed by a BSD-style license that be
  * found in the LICENSE file.
  */
-#ifndef PACKAGES_SCRIPTS_FILESYS_BASE_FILEHANDLE_H_
-#define PACKAGES_SCRIPTS_FILESYS_BASE_FILEHANDLE_H_
+#ifndef PACKAGES_SCRIPTS_FILESYS_MEMORY_MEMFILEHANDLE_H_
+#define PACKAGES_SCRIPTS_FILESYS_MEMORY_MEMFILEHANDLE_H_
 
-#include <unistd.h>
+#include <assert.h>
+#include <errno.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <list>
+#include <string>
+#include "../base/FileHandle.h"
+#include "../base/Mount.h"
+#include "../base/Node.h"
 
-class Node;
+struct dirent {
+  ino_t d_ino;
+  off_t d_off;
+  uint16_t d_reclen;
+  char d_name[256];
+};
 
-// FileHandle is the base class for implementing file handles for
-// a particular mount.  FileHandle is designed to intercept sys
-// calls that take a file descriptor as an argument.
-// The implementations here are all do-nothing stubs. A mount file handle
-// class that inherits this class will want to override important functions
-// like read() and open().  However, for a read-only mount,
-// write() would not need to be overridden.
-class FileHandle {
+// MemFileHandle is the file handle object for the memory
+// mount (MemMount class).  This class overrides all of the
+// MountFileHandle sys call methods.  In addition, this
+// class contains a corresponding node for the file handle.
+class MemFileHandle : public FileHandle {
  public:
-  FileHandle() {}
-  virtual ~FileHandle() {}
+  MemFileHandle();
+  virtual ~MemFileHandle();
 
-  // The following sys calls are called by the mount manager
-  // When implementing a new mount, nodes should override
-  // these methods as appropriate.
-  virtual off_t lseek(off_t offset, int whence) { return 0; }
-  virtual int close() { return 0; }
-  virtual ssize_t read(void *buf, size_t nbyte) { return 0; }
-  virtual ssize_t write(const void *buf, size_t nbyte) { return 0; }
-  virtual int fstat(struct stat *buf) { return 0; }
-  virtual int isatty() { return 0; }
-  virtual int ioctl(unsigned long request, ...) { return 0; }
-  virtual int getdents(void *buf, unsigned int count) { return 0; }
-
-  void set_in_use(bool in_use) { in_use_ = in_use; }
-  bool in_use(void) { return in_use_; }
+  // override FileHandle system calls
+  off_t lseek(off_t offset, int whence);
+  ssize_t read(void *buf, size_t nbyte);
+  ssize_t write(const void *buf, size_t nbyte);
+  int getdents(void *buf, unsigned int count);
+  int fstat(struct stat *buf);
+  int close(void);
+  int ioctl(unsigned long request, ...);
 
   // set_node() sets the pointer to the mem_node
   // associated with the file handle
-  virtual void set_node(Node *node) { };
+  virtual void set_node(Node *node) { node_ = node; }
 
-  virtual Node *node(void) { return NULL; };
+  virtual Node *node(void) { return node_; }
 
- protected:
-  bool in_use_;
+  // set_flags() sets the flags of this file handle
+  void set_flags(int flags) { flags_ = flags; }
+
+  // set_used() sets the used indicator for this
+  // file handle
+  void set_used(int used) { used_ = used; }
+
+  // set_offset() sets the offset for this
+  // file handle
+  void set_offset(int offset) { offset_ = offset; }
+
+  void set_mount(Mount *mount) { mount_ = mount; }
+
+ private:
+  Mount *mount_;
+  Node *node_;
+  int used_;
+  off_t offset_;
+  int flags_;
 };
 
-#endif  // PACKAGES_SCRIPTS_FILESYS_BASE_FILEHANDLE_H_
+#endif  // PACKAGES_SCRIPTS_FILESYS_MEMORY_MEMFILEHANDLE_H_

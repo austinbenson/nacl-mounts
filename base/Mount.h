@@ -34,5 +34,30 @@ class Mount {
   // sys call).
   virtual int mkdir(std::string path, mode_t mode) { return 0; }
 };
-#endif  // PACKAGES_SCRIPTS_FILESYS_BASE_MOUNT_H_
 
+class Mount2 {
+ public:
+  Mount2() {}
+  virtual ~Mount2() {}
+
+  virtual ino_t GetNode(const std::string& path) = 0;
+
+  virtual void Ref(ino_t inode) = 0;
+  virtual void Unref(ino_t inode) = 0;
+
+  virtual ino_t Creat(ino_t parent, const std::string& name, mode_t mode) = 0;
+  virtual ino_t Mkdir(ino_t parent, const std::string* name, mode_t mode) = 0;
+
+  virtual int Unlink(ino_t inode) = 0;
+  virtual int Rmdir(ino_t inode) = 0;
+
+  virtual int Stat(ino_t inode, struct stat* buf) = 0;
+  virtual int Getdents(ino_t inode, off_t offset, struct dirent *dirp, unsigned int count) = 0;
+
+  virtual ssize_t Read(ino_t inode, off_t offset, void *buf, size_t count) = 0;
+  virtual ssize_t Write(ino_t inode, off_t offset, void *buf, size_t count) = 0;
+  virtual int Sync(ino_t inode) = 0;
+
+};
+
+#endif  // PACKAGES_SCRIPTS_FILESYS_BASE_MOUNT_H_

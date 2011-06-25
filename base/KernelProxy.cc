@@ -22,7 +22,19 @@ int KernelProxy::chdir(const std::string& path) {
   Node *node;
   std::pair<Mount *, std::string> m_and_p;
 
-  node = mm_->GetNode(path);
+  // not supporting empty paths right now
+  if (path.empty()) {
+    return -1;
+  }
+
+  PathHandle ph = cwd_;
+  if (path[0] == '/') {
+    ph.SetPath(path);
+  } else {
+    ph.AppendPath(path);
+  }
+
+  node = mm_->GetNode(ph.FormulatePath());
 
   // check if node exists
   if (!node) {
@@ -37,15 +49,6 @@ int KernelProxy::chdir(const std::string& path) {
 
   // update path
   AcquireLock();
-  std::string p(path);
-  PathHandle ph = cwd_;
-
-  if (p.length() == 0)
-    return -1;
-  if (p[0] == '/')
-    ph.SetPath(p);
-  else
-    ph.AppendPath(p);
 
   m_and_p = mm_->GetMount(cwd_.FormulatePath());
 
@@ -55,7 +58,6 @@ int KernelProxy::chdir(const std::string& path) {
   }
 
   cwd_ = ph;
-
   ReleaseLock();
   return 0;
 }

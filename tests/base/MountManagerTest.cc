@@ -163,6 +163,24 @@ TEST(MountManagerTest, chdir_cwd_wd) {
   EXPECT_EQ(0, mm->kp()->chdir("/usr/mount2/hello"));
   CHECK_WD("/usr/mount2/hello");
 
+  // Now we try some relative paths and ".."
+  EXPECT_EQ(0, mm->kp()->chdir(".."));
+  CHECK_WD("/usr/mount2");
+  EXPECT_EQ(0, mm->kp()->chdir("/../..//"));
+  CHECK_WD("/");
+  EXPECT_EQ(0, mm->kp()->chdir("usr/mount2/hello/./"));
+  CHECK_WD("/usr/mount2/hello");
+  EXPECT_EQ(0, mm->kp()->mkdir("/usr/mount3/hello", 0));
+  EXPECT_EQ(0, mm->kp()->chdir("../../mount3/hello"));
+  CHECK_WD("/usr/mount3/hello");
+  EXPECT_EQ(0, mm->kp()->mkdir("world", 0));
+  EXPECT_EQ(0, mm->kp()->chdir("world"));
+  CHECK_WD("/usr/mount3/hello/world");
+  EXPECT_EQ(0, mm->kp()->chdir("."));
+  CHECK_WD("/usr/mount3/hello/world");
+  EXPECT_EQ(0, mm->kp()->chdir("../../../../../"));
+  CHECK_WD("/");
+
   mm->ClearMounts();
 }
 
@@ -170,5 +188,10 @@ TEST(MountManagerTest, chdir_cwd_wd) {
 TEST(MountManagerTest, BasicOpen) {
   MemMount *mnt = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt, "/"));
+  mm->kp()->chdir("/");
+
   EXPECT_EQ(0, mm->kp()->open("/test.txt", O_CREAT, 0));
+  EXPECT_EQ(1, mm->kp()->open("hi.txt", O_CREAT, 0));
 }
+
+

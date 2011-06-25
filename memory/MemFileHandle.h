@@ -35,7 +35,7 @@ struct dirent {
 class MemFileHandle : public FileHandle {
  public:
   MemFileHandle();
-  ~MemFileHandle();
+  virtual ~MemFileHandle();
 
   // override FileHandle system calls
   off_t lseek(off_t offset, int whence);

@@ -11,14 +11,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <list>
 #include <string>
 #include "../base/FileHandle.h"
-#include "MemMount.h"
+#include "../base/Mount.h"
 #include "../base/Node.h"
-
-class MemMount;
-
 
 struct dirent {
   ino_t d_ino;

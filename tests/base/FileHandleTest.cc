@@ -8,9 +8,9 @@
 #include "../../memory/MemMount.h"
 #include "../../memory/MemNode.h"
 #include "../common/common.h"
-#include "TestHelpCommon.h"
+#include "../memory/TestHelpCommon.h"
 
-TEST(MemFileHandleTest, lseek) {
+TEST(FileHandleTest, lseek) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
   FileHandle *handle = CreateFileHandle(mount, node, 1, 0, 0);
@@ -47,7 +47,7 @@ TEST(MemFileHandleTest, lseek) {
 }
 
 
-TEST(MemFileHandleTest, getdents) {
+TEST(FileHandleTest, getdents) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
   Node *child1 = CreateNode("child1", node, mount, false);
@@ -97,7 +97,7 @@ TEST(MemFileHandleTest, getdents) {
   delete handle;
 }
 
-TEST(MemFileHandleTest, fstat) {
+TEST(FileHandleTest, fstat) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
   FileHandle *handle = CreateFileHandle(mount, node, 1, 0, 0);
@@ -118,7 +118,7 @@ TEST(MemFileHandleTest, fstat) {
   delete handle;
 }
 
-TEST(MemFileHandleTest, close) {
+TEST(FileHandleTest, close) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
   FileHandle *handle = CreateFileHandle(mount, node, 1, 0, 0);
@@ -131,7 +131,7 @@ TEST(MemFileHandleTest, close) {
   delete handle;
 }
 
-TEST(MemFileHandleTest, ioctl) {
+TEST(FileHandleTest, ioctl) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
   FileHandle *handle = CreateFileHandle(mount, node, 1, 0, 0);
@@ -144,7 +144,7 @@ TEST(MemFileHandleTest, ioctl) {
   delete handle;
 }
 
-TEST(MemFileHandleTest, write) {
+TEST(FileHandleTest, write) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
   FileHandle *handle = CreateFileHandle(mount, node, 1, 0, O_RDWR);
@@ -199,7 +199,7 @@ TEST(MemFileHandleTest, write) {
 }
 
 
-TEST(MemFileHandleTest, read) {
+TEST(FileHandleTest, read) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount, true);
   FileHandle *handle = CreateFileHandle(mount, node, 1, 0, O_RDWR);

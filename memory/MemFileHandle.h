@@ -15,10 +15,9 @@
 #include <string>
 #include "../base/FileHandle.h"
 #include "MemMount.h"
-#include "MemNode.h"
+#include "../base/Node.h"
 
 class MemMount;
-class MemNode;
 
 
 struct dirent {
@@ -48,9 +47,9 @@ class MemFileHandle : public FileHandle {
 
   // set_node() sets the pointer to the mem_node
   // associated with the file handle
-  void set_node(MemNode *node) { node_ = node; }
+  virtual void set_node(Node *node) { node_ = node; }
 
-  MemNode *node(void) { return node_; }
+  virtual Node *node(void) { return node_; }
 
   // set_flags() sets the flags of this file handle
   void set_flags(int flags) { flags_ = flags; }
@@ -67,7 +66,7 @@ class MemFileHandle : public FileHandle {
 
  private:
   MemMount *mount_;
-  MemNode *node_;
+  Node *node_;
   int used_;
   off_t offset_;
   int flags_;

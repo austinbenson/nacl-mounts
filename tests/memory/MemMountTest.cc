@@ -19,12 +19,12 @@ TEST(MemMountTest, Locks) {
 
 TEST(MemMountTest, GetNode) {
   MemMount *mount = new MemMount();
-  MemFileHandle *fh1, *fh2, *fh3, *fh4;
-  MemFileHandle *fh5 = NULL;
-  MemNode *node1, *node2, *node3, *node4;
+  FileHandle *fh1, *fh2, *fh3, *fh4;
+  FileHandle *fh5 = NULL;
+  Node *node1, *node2, *node3, *node4;
 
-  fh1 = reinterpret_cast<MemFileHandle *>(mount->MountOpen("/node1", O_CREAT));
-  fh2 = reinterpret_cast<MemFileHandle *>(mount->MountOpen("/node2", O_CREAT));
+  fh1 = reinterpret_cast<FileHandle *>(mount->MountOpen("/node1", O_CREAT));
+  fh2 = reinterpret_cast<FileHandle *>(mount->MountOpen("/node2", O_CREAT));
 
   EXPECT_NE(fh5, fh1);
   EXPECT_NE(fh5, fh2);
@@ -34,9 +34,9 @@ TEST(MemMountTest, GetNode) {
   node2 = fh2->node();
   node2->set_is_dir(true);
 
-  fh3 = reinterpret_cast<MemFileHandle *>(
+  fh3 = reinterpret_cast<FileHandle *>(
         mount->MountOpen("/node1/node3", O_CREAT));
-  fh4 = reinterpret_cast<MemFileHandle *>(
+  fh4 = reinterpret_cast<FileHandle *>(
         mount->MountOpen("/node2/node4", O_CREAT));
 
   EXPECT_NE(fh5, fh3);
@@ -75,12 +75,12 @@ TEST(MemMountTest, GetNode) {
 
 TEST(MemMountTest, GetParentNode) {
   MemMount *mount = new MemMount();
-  MemFileHandle *fh1, *fh2, *fh3, *fh4;
-  MemFileHandle *fh5 = NULL;
-  MemNode *node1, *node2, *node3, *node4;
+  FileHandle *fh1, *fh2, *fh3, *fh4;
+  FileHandle *fh5 = NULL;
+  Node *node1, *node2, *node3, *node4;
 
-  fh1 = reinterpret_cast<MemFileHandle *>(mount->MountOpen("/node1", O_CREAT));
-  fh2 = reinterpret_cast<MemFileHandle *>(mount->MountOpen("/node2", O_CREAT));
+  fh1 = reinterpret_cast<FileHandle *>(mount->MountOpen("/node1", O_CREAT));
+  fh2 = reinterpret_cast<FileHandle *>(mount->MountOpen("/node2", O_CREAT));
 
   EXPECT_NE(fh5, fh1);
   EXPECT_NE(fh5, fh2);
@@ -90,9 +90,9 @@ TEST(MemMountTest, GetParentNode) {
   node2 = fh2->node();
   node2->set_is_dir(true);
 
-  fh3 = reinterpret_cast<MemFileHandle *>(
+  fh3 = reinterpret_cast<FileHandle *>(
         mount->MountOpen("/node1/node3", O_CREAT));
-  fh4 = reinterpret_cast<MemFileHandle *>(
+  fh4 = reinterpret_cast<FileHandle *>(
         mount->MountOpen("/node2/node4", O_CREAT));
 
   EXPECT_NE(fh5, fh3);
@@ -113,8 +113,8 @@ TEST(MemMountTest, GetParentNode) {
 
 TEST(MemMountTest, mkdir) {
   MemMount *mount = new MemMount();
-  MemNode *node = CreateNode("node", NULL, mount);
-  MemNode *node2 = CreateNode("node2", NULL, mount);
+  Node *node = CreateNode("node", NULL, mount);
+  Node *node2 = CreateNode("node2", NULL, mount);
   FileHandle *fh;
   FileHandle *fh_null = NULL;
 
@@ -122,7 +122,7 @@ TEST(MemMountTest, mkdir) {
   EXPECT_EQ(-1, mount->mkdir("/hello/", 0));
   EXPECT_EQ(0, mount->mkdir("/hello/world", 0));
 
-  node = mount->GetMemNode("/hello/world");
+  node = mount->GetNode("/hello/world");
   node->set_is_dir(false);
 
   EXPECT_EQ(-1, mount->mkdir("/hello/world/again/", 0));
@@ -131,7 +131,7 @@ TEST(MemMountTest, mkdir) {
 
   EXPECT_EQ(0, mount->mkdir("/hello/world/again/", 0));
 
-  fh = reinterpret_cast<MemFileHandle *>(
+  fh = reinterpret_cast<FileHandle *>(
     mount->MountOpen("/hello/world/again/../../world/again/again", O_CREAT));
 
   EXPECT_NE(fh_null, fh);

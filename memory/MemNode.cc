@@ -104,13 +104,13 @@ int MemNode::unlink() {
   return 0;
 }
 
-void MemNode::AddChild(MemNode *child) {
+void MemNode::AddChild(Node *child) {
   if (!(is_dir()))
     return;
   children_.push_back(child);
 }
 
-void MemNode::RemoveChild(MemNode *child) {
+void MemNode::RemoveChild(Node *child) {
   if (!(is_dir()))
     return;
   children_.remove(child);
@@ -124,10 +124,9 @@ void MemNode::ReallocData(int len) {
   assert(data_);
 }
 
-std::list<MemNode *> *MemNode::children() {
+std::list<Node *> *MemNode::children() {
   if (is_dir())
     return &children_;
   else
     return NULL;
 }
-

@@ -128,10 +128,10 @@ int MemFileHandle::getdents(void *buf, unsigned int count) {
   pos = 0;
   bytes_read = 0;
   dir = (struct dirent*)buf;
-  std::list<MemNode *> *children = node_->children();
+  std::list<Node *> *children = node_->children();
   assert(children);
   // Skip to the child at the current offset.
-  std::list<MemNode *>::iterator children_it;
+  std::list<Node *>::iterator children_it;
 
   for (children_it = children->begin();
        children_it != children->end() &&
@@ -170,4 +170,3 @@ int MemFileHandle::close(void) {
 int MemFileHandle::ioctl(unsigned long request, ...) {
   return -1;
 }
-

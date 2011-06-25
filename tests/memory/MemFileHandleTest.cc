@@ -12,7 +12,7 @@
 
 TEST(MemFileHandleTest, lseek) {
   MemMount *mount = new MemMount();
-  MemNode *node = CreateNode("node", NULL, mount, true);
+  Node *node = CreateNode("node", NULL, mount, true);
   MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
 
   int whence = 0;
@@ -49,12 +49,12 @@ TEST(MemFileHandleTest, lseek) {
 
 TEST(MemFileHandleTest, getdents) {
   MemMount *mount = new MemMount();
-  MemNode *node = CreateNode("node", NULL, mount, true);
-  MemNode *child1 = CreateNode("child1", node, mount, false);
-  MemNode *child2 = CreateNode("child2", node, mount, false);
-  MemNode *child3 = CreateNode("child3", node, mount, false);
-  MemNode *child4 = CreateNode("child4", node, mount, false);
-  MemNode *child5 = CreateNode("child5", node, mount, false);
+  Node *node = CreateNode("node", NULL, mount, true);
+  Node *child1 = CreateNode("child1", node, mount, false);
+  Node *child2 = CreateNode("child2", node, mount, false);
+  Node *child3 = CreateNode("child3", node, mount, false);
+  Node *child4 = CreateNode("child4", node, mount, false);
+  Node *child5 = CreateNode("child5", node, mount, false);
   node->AddChild(child1);
   node->AddChild(child2);
   node->AddChild(child3);
@@ -99,7 +99,7 @@ TEST(MemFileHandleTest, getdents) {
 
 TEST(MemFileHandleTest, fstat) {
   MemMount *mount = new MemMount();
-  MemNode *node = CreateNode("node", NULL, mount, true);
+  Node *node = CreateNode("node", NULL, mount, true);
   MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
 
   struct stat *buf = (struct stat *)malloc(sizeof(struct stat));
@@ -120,7 +120,7 @@ TEST(MemFileHandleTest, fstat) {
 
 TEST(MemFileHandleTest, close) {
   MemMount *mount = new MemMount();
-  MemNode *node = CreateNode("node", NULL, mount, true);
+  Node *node = CreateNode("node", NULL, mount, true);
   MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
 
   EXPECT_EQ(0, handle->close());
@@ -133,7 +133,7 @@ TEST(MemFileHandleTest, close) {
 
 TEST(MemFileHandleTest, ioctl) {
   MemMount *mount = new MemMount();
-  MemNode *node = CreateNode("node", NULL, mount, true);
+  Node *node = CreateNode("node", NULL, mount, true);
   MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, 0);
 
   // expecting ioctl to not be implemented
@@ -146,7 +146,7 @@ TEST(MemFileHandleTest, ioctl) {
 
 TEST(MemFileHandleTest, write) {
   MemMount *mount = new MemMount();
-  MemNode *node = CreateNode("node", NULL, mount, true);
+  Node *node = CreateNode("node", NULL, mount, true);
   MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, O_RDWR);
   char *data;
   int num_to_match = 4;
@@ -201,7 +201,7 @@ TEST(MemFileHandleTest, write) {
 
 TEST(MemFileHandleTest, read) {
   MemMount *mount = new MemMount();
-  MemNode *node = CreateNode("node", NULL, mount, true);
+  Node *node = CreateNode("node", NULL, mount, true);
   MemFileHandle *handle = CreateMemFileHandle(mount, node, 1, 0, O_RDWR);
   int num_to_match = 4;
   char *buf_r, *buf_w, *data;

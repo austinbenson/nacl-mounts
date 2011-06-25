@@ -46,14 +46,14 @@ class MemMount: public Mount {
 
   // GetMemNode() is like GetNode(), but the method
   // is used internally to the memory mount structure.
-  MemNode *GetMemNode(std::string path);
+  Node *GetMemNode(std::string path);
 
   // GetMemParentNode() is like GetParentNode(), but
   // the method is used internally to the memory mount
   // structure.
-  MemNode *GetParentMemNode(std::string path);
+  Node *GetParentMemNode(std::string path);
 
-  MemNode *root() { return root_; }
+  Node *root() { return root_; }
 
   // concurrency tools
   void AcquireLock(void);
@@ -62,8 +62,7 @@ class MemMount: public Mount {
  private:
   PathHandle *path_handle_;
   pthread_mutex_t lock_;
-  MemNode *root_;
+  Node *root_;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_MEMORY_MEMMOUNT_H_
-

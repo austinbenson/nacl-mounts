@@ -8,6 +8,8 @@
 
 #include <unistd.h>
 
+class Node;
+
 // FileHandle is the base class for implementing file handles for
 // a particular mount.  FileHandle is designed to intercept sys
 // calls that take a file descriptor as an argument.
@@ -35,9 +37,14 @@ class FileHandle {
   void set_in_use(bool in_use) { in_use_ = in_use; }
   bool in_use(void) { return in_use_; }
 
+  // set_node() sets the pointer to the mem_node
+  // associated with the file handle
+  virtual void set_node(Node *node) { };
+
+  virtual Node *node(void) { return NULL; };
+
  protected:
   bool in_use_;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_FILEHANDLE_H_
-

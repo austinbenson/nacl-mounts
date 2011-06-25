@@ -8,9 +8,9 @@
 #ifndef PACKAGES_SCRIPTS_FILESYS_TESTS_MEMORY_TESTHELPCOMMON_H_
 #define PACKAGES_SCRIPTS_FILESYS_TESTS_MEMORY_TESTHELPCOMMON_H_
 
-MemNode *CreateNode(std::string name, MemNode *parent,
+Node *CreateNode(std::string name, Node *parent,
                     MemMount *mount, bool is_dir = false) {
-  MemNode *node = new MemNode();
+  Node *node = new MemNode();
   node->set_name(name);
   node->set_parent(parent);
   node->set_mount(mount);
@@ -18,7 +18,7 @@ MemNode *CreateNode(std::string name, MemNode *parent,
   return node;
 }
 
-MemFileHandle *CreateMemFileHandle(MemMount *mount, MemNode *node,
+MemFileHandle *CreateMemFileHandle(MemMount *mount, Node *node,
                                    int used, int offset, int flags) {
   MemFileHandle *mfh = new MemFileHandle();
   mfh->set_mount(mount);

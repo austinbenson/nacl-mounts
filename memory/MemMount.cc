@@ -17,8 +17,8 @@ MemMount::~MemMount() {
 }
 
 FileHandle *MemMount::MountOpen(std::string path, int oflag, ...) {
-  MemNode *node;
-  MemNode *parent;
+  Node *node;
+  Node *parent;
   MemFileHandle *handle;
 
   AcquireLock();
@@ -91,8 +91,8 @@ FileHandle *MemMount::MountOpen(std::string path, int oflag, ...) {
 }
 
 int MemMount::mkdir(std::string path, mode_t mode) {
-  MemNode *node;
-  MemNode *nnode;
+  Node *node;
+  Node *nnode;
 
   AcquireLock();
 
@@ -146,11 +146,11 @@ Node *MemMount::GetParentNode(std::string path) {
   return GetParentMemNode(path);
 }
 
-MemNode *MemMount::GetMemNode(std::string path) {
-  MemNode *node;
+Node *MemMount::GetMemNode(std::string path) {
+  Node *node;
   std::list<std::string> path_components;
-  std::list<MemNode *>::iterator it;
-  std::list<MemNode *> *children;
+  std::list<Node *>::iterator it;
+  std::list<Node *> *children;
 
   // Get in canonical form.
   if (path.length() == 0)
@@ -187,6 +187,6 @@ MemNode *MemMount::GetMemNode(std::string path) {
   return node;
 }
 
-MemNode *MemMount::GetParentMemNode(std::string path) {
+Node *MemMount::GetParentMemNode(std::string path) {
   return GetMemNode(path + "/..");
 }

@@ -140,7 +140,7 @@ TEST(MemMountTest, MountOpen) {
   delete mount;
 }
 
-
+/*
 static const char* kTestFileName = "/lala.txt";
 
 static void test_write() {
@@ -183,3 +183,4 @@ TEST(MemMountTest, DefaultMount) {
     test_close(fds[i]);
   }
 }
+*/

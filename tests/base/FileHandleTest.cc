@@ -8,6 +8,7 @@
 #include "../../memory/MemMount.h"
 #include "../../memory/MemNode.h"
 #include "../common/common.h"
+#include "TestBaseCommon.h"
 #include "../memory/TestHelpCommon.h"
 
 TEST(FileHandleTest, lseek) {

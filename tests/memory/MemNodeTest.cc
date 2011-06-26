@@ -11,7 +11,6 @@
 #include "TestHelpCommon.h"
 
 
-/*
 TEST(MemNodeTest, AddChildren) {
   MemMount *mnt = new MemMount();
   Node *node1 = CreateNode("node1", NULL, mnt, true);
@@ -267,4 +266,3 @@ TEST(MemNodeTest, Access) {
   delete mnt;
   delete node1;
 }
-*/

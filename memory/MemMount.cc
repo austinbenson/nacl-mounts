@@ -137,9 +137,8 @@ Node2 *MemMount::GetNode(std::string path) {
   return new MemNode2(node);
 }
 
-Node2 *MemMount::GetParentNode(std::string path) {
-  Node* node = GetParentMemNode(path);
-  return new MemNode2(node);
+Node *MemMount::GetParentNode(std::string path) {
+  return GetParentMemNode(path);
 }
 
 Node *MemMount::GetMemNode(std::string path) {

@@ -39,7 +39,7 @@ class MemMount: public Mount {
   // Given a path, GetParentNode returns the parent
   // of the Node located at path.  If path is not a valid
   // path for a Node, NULL is returned.
-  Node2 *GetParentNode(std::string path);
+  Node *GetParentNode(std::string path);
 
   // GetMemNode() is like GetNode(), but the method
   // is used internally to the memory mount structure.

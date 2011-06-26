@@ -50,25 +50,25 @@ TEST(MemMountTest, GetNode) {
   CHECK(node3);
   CHECK(node4);
 
-  EXPECT_EQ(node21, mount->GetNode("/node1"));
-  EXPECT_NE(node22, mount->GetNode("/node1"));
-  EXPECT_NE(node23, mount->GetNode("/node1"));
-  EXPECT_NE(node24, mount->GetNode("/node1"));
+  EXPECT_EQ(node1, reinterpret_cast<MemNode2*>(mount->GetNode("/node1"))->node());
+  EXPECT_NE(node2, reinterpret_cast<MemNode2*>(mount->GetNode("/node1"))->node());
+  EXPECT_NE(node3, reinterpret_cast<MemNode2*>(mount->GetNode("/node1"))->node());
+  EXPECT_NE(node4, reinterpret_cast<MemNode2*>(mount->GetNode("/node1"))->node());
 
-  EXPECT_EQ(node22, mount->GetNode("/node2"));
-  EXPECT_NE(node21, mount->GetNode("/node2"));
-  EXPECT_NE(node23, mount->GetNode("/node2"));
-  EXPECT_NE(node24, mount->GetNode("/node2"));
+  EXPECT_EQ(node2, reinterpret_cast<MemNode2*>(mount->GetNode("/node2"))->node());
+  EXPECT_NE(node1, reinterpret_cast<MemNode2*>(mount->GetNode("/node2"))->node());
+  EXPECT_NE(node3, reinterpret_cast<MemNode2*>(mount->GetNode("/node2"))->node());
+  EXPECT_NE(node4, reinterpret_cast<MemNode2*>(mount->GetNode("/node2"))->node());
 
-  EXPECT_EQ(node23, mount->GetNode("/node1/node3"));
-  EXPECT_NE(node21, mount->GetNode("/node1/node3"));
-  EXPECT_NE(node22, mount->GetNode("/node1/node3"));
-  EXPECT_NE(node24, mount->GetNode("/node1/node3"));
+  EXPECT_EQ(node3, reinterpret_cast<MemNode2*>(mount->GetNode("/node1/node3"))->node());
+  EXPECT_NE(node1, reinterpret_cast<MemNode2*>(mount->GetNode("/node1/node3"))->node());
+  EXPECT_NE(node2, reinterpret_cast<MemNode2*>(mount->GetNode("/node1/node3"))->node());
+  EXPECT_NE(node4, reinterpret_cast<MemNode2*>(mount->GetNode("/node1/node3"))->node());
 
-  EXPECT_EQ(node24, mount->GetNode("/node2/node4"));
-  EXPECT_NE(node21, mount->GetNode("/node2/node4"));
-  EXPECT_NE(node22, mount->GetNode("/node2/node4"));
-  EXPECT_NE(node23, mount->GetNode("/node2/node4"));
+  EXPECT_EQ(node4, reinterpret_cast<MemNode2*>(mount->GetNode("/node2/node4"))->node());
+  EXPECT_NE(node1, reinterpret_cast<MemNode2*>(mount->GetNode("/node2/node4"))->node());
+  EXPECT_NE(node2, reinterpret_cast<MemNode2*>(mount->GetNode("/node2/node4"))->node());
+  EXPECT_NE(node3, reinterpret_cast<MemNode2*>(mount->GetNode("/node2/node4"))->node());
 
   EXPECT_EQ(NULL, mount->GetNode("/hi"));
   EXPECT_EQ(NULL, mount->GetNode("/node2/node4/node5"));
@@ -157,18 +157,17 @@ TEST(MemMountTest, mkdir) {
 
 TEST(MemMountTest, MountOpen) {
   MemMount *mount = new MemMount();
-  Node *node = NULL;
   mode_t mode = 0755;
 
   EXPECT_EQ(0, mount->mkdir("/node1", O_CREAT));
-  EXPECT_NE(node, reinterpret_cast<MemNode2*>(mount->MountOpen("/node2", O_CREAT, mode))->node());
-  EXPECT_NE(node, reinterpret_cast<MemNode2*>(mount->MountOpen("/node1/node3", O_CREAT, mode))->node());
-  EXPECT_NE(node, reinterpret_cast<MemNode2*>(mount->MountOpen("/node1/node4/", O_CREAT, mode))->node());
-  EXPECT_EQ(node, reinterpret_cast<MemNode2*>(mount->MountOpen("/node1/", O_CREAT, mode))->node());
-  EXPECT_NE(node, reinterpret_cast<MemNode2*>(mount->MountOpen("/node1/node4/../../node1/./node5", O_CREAT, mode))->node());
-  EXPECT_NE(node, reinterpret_cast<MemNode2*>(mount->MountOpen("/node1/node3/../../node1/./", 0, mode))->node());
-  EXPECT_EQ(node, reinterpret_cast<MemNode2*>(mount->MountOpen("/node1/node3/../../node1/./",
-                                                               O_CREAT | O_EXCL, mode))->node());
+  CHECK(mount->MountOpen("/node2", O_CREAT, mode));
+  CHECK(mount->MountOpen("/node1/node3", O_CREAT, mode));
+  CHECK(mount->MountOpen("/node1/node4/", O_CREAT, mode));
+  EXPECT_EQ((Node2*)NULL, mount->MountOpen("/node1/", O_CREAT, mode));
+  CHECK(mount->MountOpen("/node1/node4/../../node1/./node5", O_CREAT, mode));
+  CHECK(mount->MountOpen("/node1/node3/../../node1/./", 0, mode));
+  EXPECT_EQ((Node2*)NULL, mount->MountOpen("/node1/node3/../../node1/./",
+                                           O_CREAT | O_EXCL, mode));
 
   delete mount;
 }

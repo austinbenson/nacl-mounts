@@ -140,36 +140,37 @@ TEST(MemMountTest, MountOpen) {
   delete mount;
 }
 
-/*
+
 static const char* kTestFileName = "/lala.txt";
 
 static void test_write() {
-  MountManager* mm = MountManager::MMInstance();
-  int fd = mm->open(kTestFileName, O_WRONLY | O_CREAT, 0644);
+  KernelProxy* kp = MountManager::MMInstance()->kp();
+  int fd = kp->open(kTestFileName, O_WRONLY | O_CREAT, 0644);
   if (fd == -1) {
     perror("mm->open: ");
   }
   ASSERT_LE(0, fd);
-  ASSERT_EQ(5, mm->write(fd, "hello", 5));
-  ASSERT_EQ(0, mm->close(fd));
+  ASSERT_EQ(5, kp->write(fd, "hello", 5));
+  ASSERT_EQ(0, kp->close(fd));
 }
 
 static void test_read(int* out) {
-  MountManager* mm = MountManager::MMInstance();
-  int fd = mm->open(kTestFileName, O_RDONLY);
+  KernelProxy *kp = MountManager::MMInstance()->kp();
+
+  int fd = kp->open(kTestFileName, O_RDONLY);
   if (fd == -1) {
     perror("mm->open: ");
   }
   ASSERT_LE(0, fd);
   char buf[6];
   buf[5] = 0;
-  ASSERT_EQ(5, mm->read(fd, buf, 5));
+  ASSERT_EQ(5, kp->read(fd, buf, 5));
   ASSERT_STREQ("hello", buf);
   *out = fd;
 }
 
 static void test_close(int fd) {
-  ASSERT_EQ(0, MountManager::MMInstance()->close(fd));
+  ASSERT_EQ(0, MountManager::MMInstance()->kp()->close(fd));
 }
 
 TEST(MemMountTest, DefaultMount) {
@@ -182,4 +183,3 @@ TEST(MemMountTest, DefaultMount) {
     test_close(fds[i]);
   }
 }
-*/

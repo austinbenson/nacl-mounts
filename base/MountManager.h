@@ -18,14 +18,12 @@
 #include <utility>
 #include <vector>
 #include "../memory/MemMount.h"
-#include "FileHandle.h"
 #include "KernelProxy.h"
 #include "Mount.h"
 #include "Node.h"
 #include "PathHandle.h"
 
 class Mount;
-class FileHandle;
 // MountManager serves as an indirection layer between libc and IRT.  Different
 // mount types can be added to the mount manager so that different sys call
 // implementations can be used at different locations in the file system.
@@ -84,4 +82,3 @@ class MountManager {
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_MOUNTMANAGER_H_
-

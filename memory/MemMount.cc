@@ -16,7 +16,7 @@ MemMount::~MemMount() {
   delete root_;
 }
 
-Node *MemMount::MountOpen(std::string path, int oflag, ...) {
+Node *MemMount::MountOpen(std::string path, int oflag, mode_t mode) {
   Node *node;
   Node *parent;
 

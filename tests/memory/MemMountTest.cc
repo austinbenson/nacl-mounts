@@ -20,9 +20,10 @@ TEST(MemMountTest, GetNode) {
   MemMount *mount = new MemMount();
   Node *node5 = NULL;
   Node *node1, *node2, *node3, *node4;
+  mode_t mode = 0755;
 
-  node1 = mount->MountOpen("/node1", O_CREAT);
-  node2 = mount->MountOpen("/node2", O_CREAT);
+  node1 = mount->MountOpen("/node1", O_CREAT, mode);
+  node2 = mount->MountOpen("/node2", O_CREAT, mode);
 
   EXPECT_NE(node5, node2);
   EXPECT_NE(node5, node2);
@@ -30,8 +31,8 @@ TEST(MemMountTest, GetNode) {
   node1->set_is_dir(true);
   node2->set_is_dir(true);
 
-  node3 = mount->MountOpen("/node1/node3", O_CREAT);
-  node4 = mount->MountOpen("/node2/node4", O_CREAT);
+  node3 = mount->MountOpen("/node1/node3", O_CREAT, mode);
+  node4 = mount->MountOpen("/node2/node4", O_CREAT, mode);
 
   EXPECT_NE(node5, node3);
   EXPECT_NE(node5, node4);
@@ -68,9 +69,10 @@ TEST(MemMountTest, GetParentNode) {
   MemMount *mount = new MemMount();
   Node *node5 = NULL;
   Node *node1, *node2, *node3, *node4;
+  mode_t mode = 0755;
 
-  node1 = mount->MountOpen("/node1", O_CREAT);
-  node2 = mount->MountOpen("/node2", O_CREAT);
+  node1 = mount->MountOpen("/node1", O_CREAT, mode);
+  node2 = mount->MountOpen("/node2", O_CREAT, mode);
 
   EXPECT_NE(node5, node1);
   EXPECT_NE(node5, node1);
@@ -78,8 +80,8 @@ TEST(MemMountTest, GetParentNode) {
   node1->set_is_dir(true);
   node2->set_is_dir(true);
 
-  node3 = mount->MountOpen("/node1/node3", O_CREAT);
-  node4 = mount->MountOpen("/node2/node4", O_CREAT);
+  node3 = mount->MountOpen("/node1/node3", O_CREAT, mode);
+  node4 = mount->MountOpen("/node2/node4", O_CREAT, mode);
 
   EXPECT_NE(node5, node3);
   EXPECT_NE(node5, node4);
@@ -100,6 +102,7 @@ TEST(MemMountTest, mkdir) {
   Node *node2 = CreateNode("node2", NULL, mount);
   Node *node3;
   Node *node_null = NULL;
+  mode_t mode = 0755;
 
   EXPECT_EQ(0, mount->mkdir("/hello/", 0));
   EXPECT_EQ(-1, mount->mkdir("/hello/", 0));
@@ -114,7 +117,7 @@ TEST(MemMountTest, mkdir) {
 
   EXPECT_EQ(0, mount->mkdir("/hello/world/again/", 0));
 
-  node3 = mount->MountOpen("/hello/world/again/../../world/again/again", O_CREAT);
+  node3 = mount->MountOpen("/hello/world/again/../../world/again/again", O_CREAT, mode);
 
   EXPECT_NE(node_null, node3);
 
@@ -126,16 +129,17 @@ TEST(MemMountTest, mkdir) {
 TEST(MemMountTest, MountOpen) {
   MemMount *mount = new MemMount();
   Node *node = NULL;
+  mode_t mode = 0755;
 
   EXPECT_EQ(0, mount->mkdir("/node1", O_CREAT));
-  EXPECT_NE(node, mount->MountOpen("/node2", O_CREAT));
-  EXPECT_NE(node, mount->MountOpen("/node1/node3", O_CREAT));
-  EXPECT_NE(node, mount->MountOpen("/node1/node4/", O_CREAT));
-  EXPECT_EQ(node, mount->MountOpen("/node1/", O_CREAT));
-  EXPECT_NE(node, mount->MountOpen("/node1/node4/../../node1/./node5", O_CREAT));
-  EXPECT_NE(node, mount->MountOpen("/node1/node3/../../node1/./", 0));
+  EXPECT_NE(node, mount->MountOpen("/node2", O_CREAT, mode));
+  EXPECT_NE(node, mount->MountOpen("/node1/node3", O_CREAT, mode));
+  EXPECT_NE(node, mount->MountOpen("/node1/node4/", O_CREAT, mode));
+  EXPECT_EQ(node, mount->MountOpen("/node1/", O_CREAT, mode));
+  EXPECT_NE(node, mount->MountOpen("/node1/node4/../../node1/./node5", O_CREAT, mode));
+  EXPECT_NE(node, mount->MountOpen("/node1/node3/../../node1/./", 0, mode));
   EXPECT_EQ(node, mount->MountOpen("/node1/node3/../../node1/./",
-            O_CREAT | O_EXCL));
+                                   O_CREAT | O_EXCL, mode));
 
   delete mount;
 }

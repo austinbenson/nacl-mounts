@@ -8,6 +8,10 @@
 #ifndef PACKAGES_SCRIPTS_FILESYS_TESTS_MEMORY_TESTHELPCOMMON_H_
 #define PACKAGES_SCRIPTS_FILESYS_TESTS_MEMORY_TESTHELPCOMMON_H_
 
+#define CHECK(x) { \
+  ASSERT_NE((void*)NULL, x); \
+} while(0)
+
 Node *CreateNode(std::string name, Node *parent,
                     MemMount *mount, bool is_dir = false) {
   Node *node = new MemNode();

@@ -18,15 +18,14 @@ TEST(MemMountTest, Locks) {
 
 TEST(MemMountTest, GetNode) {
   MemMount *mount = new MemMount();
-  Node *node5 = NULL;
   Node *node1, *node2, *node3, *node4;
   mode_t mode = 0755;
 
   node1 = mount->MountOpen("/node1", O_CREAT, mode);
   node2 = mount->MountOpen("/node2", O_CREAT, mode);
 
-  EXPECT_NE(node5, node2);
-  EXPECT_NE(node5, node2);
+  CHECK(node1);
+  CHECK(node2);
 
   node1->set_is_dir(true);
   node2->set_is_dir(true);
@@ -34,8 +33,8 @@ TEST(MemMountTest, GetNode) {
   node3 = mount->MountOpen("/node1/node3", O_CREAT, mode);
   node4 = mount->MountOpen("/node2/node4", O_CREAT, mode);
 
-  EXPECT_NE(node5, node3);
-  EXPECT_NE(node5, node4);
+  CHECK(node3);
+  CHECK(node4);
 
   EXPECT_EQ(node1, mount->GetNode("/node1"));
   EXPECT_NE(node2, mount->GetNode("/node1"));
@@ -67,15 +66,14 @@ TEST(MemMountTest, GetNode) {
 
 TEST(MemMountTest, GetParentNode) {
   MemMount *mount = new MemMount();
-  Node *node5 = NULL;
   Node *node1, *node2, *node3, *node4;
   mode_t mode = 0755;
 
   node1 = mount->MountOpen("/node1", O_CREAT, mode);
   node2 = mount->MountOpen("/node2", O_CREAT, mode);
 
-  EXPECT_NE(node5, node1);
-  EXPECT_NE(node5, node1);
+  CHECK(node1);
+  CHECK(node2);
 
   node1->set_is_dir(true);
   node2->set_is_dir(true);
@@ -83,8 +81,8 @@ TEST(MemMountTest, GetParentNode) {
   node3 = mount->MountOpen("/node1/node3", O_CREAT, mode);
   node4 = mount->MountOpen("/node2/node4", O_CREAT, mode);
 
-  EXPECT_NE(node5, node3);
-  EXPECT_NE(node5, node4);
+  CHECK(node3);
+  CHECK(node4);
 
   EXPECT_EQ(mount->root(), mount->GetParentNode("/hi"));
   EXPECT_EQ(node1, mount->GetParentNode("/node1/node3"));
@@ -101,7 +99,6 @@ TEST(MemMountTest, mkdir) {
   Node *node = CreateNode("node", NULL, mount);
   Node *node2 = CreateNode("node2", NULL, mount);
   Node *node3;
-  Node *node_null = NULL;
   mode_t mode = 0755;
 
   EXPECT_EQ(0, mount->mkdir("/hello/", 0));
@@ -119,7 +116,7 @@ TEST(MemMountTest, mkdir) {
 
   node3 = mount->MountOpen("/hello/world/again/../../world/again/again", O_CREAT, mode);
 
-  EXPECT_NE(node_null, node3);
+  CHECK(node3);
 
   delete node;
   delete node2;

@@ -11,13 +11,12 @@
 #include "../base/Mount.h"
 #include "../base/Node.h"
 #include "../base/PathHandle.h"
-#include "../base/FileHandle.h"
 #include "MemNode.h"
 
 class MemNode;
 
 // mem_mount is a storage mount representing local memory.  The node
-// class is MemNode and the file handle class is FileHandle.
+// class is MemNode.
 class MemMount: public Mount {
  public:
   MemMount();

@@ -19,7 +19,6 @@
 #include <vector>
 #include "FileHandle.h"
 #include "Mount.h"
-#include "Node.h"
 #include "PathHandle.h"
 
 class MountManager;

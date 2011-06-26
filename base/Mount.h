@@ -8,6 +8,7 @@
 
 #include <fcntl.h>
 #include <string>
+#include <sys/stat.h>
 #include "PathHandle.h"
 #include "Node2.h"
 

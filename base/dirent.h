@@ -7,6 +7,7 @@
 #define PACKAGES_SCRIPTS_FILESYS_BASE_DIRENT_H_
 
 #include <stdint.h>
+#include <sys/stat.h>
 
 struct dirent {
   ino_t d_ino;

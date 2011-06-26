@@ -8,8 +8,8 @@
 
 #include <fcntl.h>
 #include <string>
-#include "Node.h"
 #include "PathHandle.h"
+#include "Node2.h"
 
 // Mount serves as the base mounting class that will be used by
 // the mount manager (class MountManager).  The mount manager
@@ -22,16 +22,32 @@ class Mount {
 
   // GetNode() returns the node at path.  It returns NULL if no
   // node is at path.
-  virtual Node *GetNode(std::string path) { return NULL; }
+  virtual Node2 *GetNode(std::string path) { return NULL; }
 
   // MountOpen() opens a node at path (representing the open sys call).
   // MountOpen() is also responsible for node creation when the value
   // of oflag indicates such.
-  virtual Node *MountOpen(std::string path, int oflag, mode_t mode) { return 0; }
+  virtual Node2 *MountOpen(std::string path, int oflag, mode_t mode) { return 0; }
 
   // mkdir() creates a directory at path (representing the mkdir
   // sys call).
   virtual int mkdir(std::string path, mode_t mode) { return 0; }
+
+  virtual bool is_dir(Node2* node) { return false; }
+  virtual size_t len(Node2* node) { return 0; }
+  virtual int capacity(Node2* node) { return 0; }
+  virtual int chmod(Node2* node, mode_t mode) { return 0; }
+  virtual int stat(Node2* node, struct stat *buf) { return 0; }
+  virtual int remove(Node2* node) { return 0; }
+  virtual int access(Node2* node, int amode) { return 0; }
+  virtual int rmdir(Node2* node) { return 0; }
+  virtual void set_len(Node2* node, size_t len) { }
+  virtual void ReallocData(Node2* node, int len) {}
+  virtual void raw_stat(Node2* node, struct stat *buf) {}
+  virtual void DecrementUseCount(Node2* node) { }
+  virtual std::list<Node2 *> *children(Node2* node) { return NULL; }
+  virtual std::string name(Node2* node) { return ""; }
+  virtual char *data(Node2* node) { return 0; }
 
   virtual void AcquireLock(void) {}
   virtual void ReleaseLock(void) {}

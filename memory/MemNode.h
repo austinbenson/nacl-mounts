@@ -15,6 +15,31 @@
 
 class MemMount;
 
+// A macro to disallow the evil copy constructor and operator= functions
+// This should be used in the private: declarations for a class
+#define DISALLOW_COPY_AND_ASSIGN(TypeName)      \
+  TypeName(const TypeName&);                    \
+  void operator=(const TypeName&)
+
+
+class MemNode2 : public Node2 {
+ public:
+  explicit MemNode2(Node* node) : node_(node) {
+  }
+
+  virtual ~MemNode2() {
+    delete node_;
+  }
+
+  Node* node() { return node_; }
+
+ private:
+  Node* node_;
+
+  DISALLOW_COPY_AND_ASSIGN(MemNode2);
+};
+
+
 // MemNode is the node object for the memory mount (mem_mount class)
 // This class overrides all of the MountNode sys call methods.  In
 // addition, this class keeps track of parent/child relationships by
@@ -53,7 +78,7 @@ class MemNode : public Node {
   // which represent the children of this node.
   // If this node is a file or a directory with no children,
   // a NULL pointer is returned.
-  virtual std::list<Node *> *children(void);
+  virtual std::list<Node2 *> *children(void);
 
   // set_name() sets the name of this node.  This is not the
   // path but rather the name of the file or directory

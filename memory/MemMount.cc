@@ -4,6 +4,7 @@
  * found in the LICENSE file.
  */
 #include "MemMount.h"
+#include "MemNode.h"
 
 MemMount::MemMount() {
   pthread_mutex_init(&lock_, NULL);
@@ -16,7 +17,7 @@ MemMount::~MemMount() {
   delete root_;
 }
 
-Node *MemMount::MountOpen(std::string path, int oflag, mode_t mode) {
+Node2 *MemMount::MountOpen(std::string path, int oflag, mode_t mode) {
   Node *node;
   Node *parent;
 
@@ -75,7 +76,7 @@ Node *MemMount::MountOpen(std::string path, int oflag, mode_t mode) {
   node->IncrementUseCount();
 
   ReleaseLock();
-  return node;
+  return new MemNode2(node);
 }
 
 int MemMount::mkdir(std::string path, mode_t mode) {
@@ -126,19 +127,19 @@ void MemMount::ReleaseLock(void) {
   if (pthread_mutex_unlock(&lock_)) assert(0);
 }
 
-Node *MemMount::GetNode(std::string path) {
-  return GetMemNode(path);
+Node2 *MemMount::GetNode(std::string path) {
+  return new MemNode2(GetMemNode(path));
 }
 
-Node *MemMount::GetParentNode(std::string path) {
-  return GetParentMemNode(path);
+Node2 *MemMount::GetParentNode(std::string path) {
+  return new MemNode2(GetParentMemNode(path));
 }
 
 Node *MemMount::GetMemNode(std::string path) {
   Node *node;
   std::list<std::string> path_components;
-  std::list<Node *>::iterator it;
-  std::list<Node *> *children;
+  std::list<Node2 *>::iterator it;
+  std::list<Node2 *> *children;
 
   // Get in canonical form.
   if (path.length() == 0)
@@ -160,14 +161,18 @@ Node *MemMount::GetMemNode(std::string path) {
     }
     // loop through children
     children = node->children();
-    for (it = children->begin(); it != children->end(); ++it)
-      if (((*it)->name()).compare(*path_it) == 0) break;
+    for (it = children->begin(); it != children->end(); ++it) {
+      Node* cur = reinterpret_cast<MemNode2*>(*it)->node();
+      if ((cur->name()).compare(*path_it) == 0) {
+        break;
+      }
+    }
     // check for failure
     if (it == children->end()) {
       errno = ENOENT;
       return NULL;
     } else {
-      node = *it;
+      node = reinterpret_cast<MemNode2*>(*it)->node();
     }
   }
   // We should now have completed the walk.
@@ -177,4 +182,64 @@ Node *MemMount::GetMemNode(std::string path) {
 
 Node *MemMount::GetParentMemNode(std::string path) {
   return GetMemNode(path + "/..");
+}
+
+bool MemMount::is_dir(Node2 *node) {
+  return reinterpret_cast<MemNode2*>(node)->node()->is_dir();
+}
+
+size_t MemMount::len(Node2 *node) {
+  return reinterpret_cast<MemNode2*>(node)->node()->len();
+}
+
+int MemMount::capacity(Node2 *node) {
+  return reinterpret_cast<MemNode2*>(node)->node()->capacity();
+}
+
+int MemMount::chmod(Node2 *node, mode_t mode) {
+  return reinterpret_cast<MemNode2*>(node)->node()->chmod(mode);
+}
+
+int MemMount::stat(Node2* node, struct stat *buf) {
+  return reinterpret_cast<MemNode2*>(node)->node()->stat(buf);
+}
+
+int MemMount::remove(Node2* node) {
+  return reinterpret_cast<MemNode2*>(node)->node()->remove();
+}
+
+int MemMount::access(Node2* node, int amode) {
+  return reinterpret_cast<MemNode2*>(node)->node()->access(amode);
+}
+
+int MemMount::rmdir(Node2* node) {
+  return reinterpret_cast<MemNode2*>(node)->node()->rmdir();
+}
+
+void MemMount::set_len(Node2* node, size_t len) {
+  return reinterpret_cast<MemNode2*>(node)->node()->set_len(len);
+}
+
+void MemMount::ReallocData(Node2* node, int len) {
+  return reinterpret_cast<MemNode2*>(node)->node()->ReallocData(len);
+}
+
+void MemMount::raw_stat(Node2* node, struct stat *buf) {
+  return reinterpret_cast<MemNode2*>(node)->node()->raw_stat(buf);
+}
+
+void MemMount::DecrementUseCount(Node2* node) {
+  return reinterpret_cast<MemNode2*>(node)->node()->DecrementUseCount();
+}
+
+std::list<Node2 *> *MemMount::children(Node2* node) {
+  return reinterpret_cast<MemNode2*>(node)->node()->children();
+}
+
+std::string MemMount::name(Node2* node) {
+  return reinterpret_cast<MemNode2*>(node)->node()->name();
+}
+
+char *MemMount::data(Node2* node) {
+  return reinterpret_cast<MemNode2*>(node)->node()->data();
 }

@@ -14,7 +14,8 @@
 #include <string.h>
 #include <list>
 #include <string>
-#include "Node.h"
+
+#include "Node2.h"
 
 struct dirent {
   ino_t d_ino;
@@ -46,9 +47,9 @@ class FileHandle {
 
   // set_node() sets the pointer to the mem_node
   // associated with the file handle
-  virtual void set_node(Node *node) { node_ = node; }
+  virtual void set_node(Node2 *node) { node_ = node; }
 
-  virtual Node *node(void) { return node_; }
+  virtual Node2 *node(void) { return node_; }
 
   // set_flags() sets the flags of this file handle
   void set_flags(int flags) { flags_ = flags; }
@@ -68,7 +69,7 @@ class FileHandle {
 
  private:
   Mount *mount_;
-  Node *node_;
+  Node2 *node_;
   int used_;
   off_t offset_;
   int flags_;

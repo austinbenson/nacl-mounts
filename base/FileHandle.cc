@@ -22,7 +22,7 @@ off_t FileHandle::lseek(off_t offset, int whence) {
   mount_->AcquireLock();
 
   // Check that it isn't a directory.
-  if (node_->is_dir()) {
+  if (mount_->is_dir(node_)) {
     errno = EBADF;
     mount_->ReleaseLock();
     return -1;
@@ -36,7 +36,7 @@ off_t FileHandle::lseek(off_t offset, int whence) {
     // TODO(arbenson): handle EOVERFLOW if too big.
     break;
   case SEEK_END:
-    next = node_->len() - offset;
+    next = mount_->len(node_) - offset;
     // TODO(arbenson): handle EOVERFLOW if too big.
     break;
   default:
@@ -62,18 +62,18 @@ ssize_t FileHandle::read(void *buf, size_t nbyte) {
 
   // Check that this file handle can be read from.
   if ((flags_ & O_ACCMODE) == O_WRONLY ||
-      node_->is_dir()) {
+      mount_->is_dir(node_)) {
     errno = EBADF;
     mount_->ReleaseLock();
     return -1;
   }
   // Limit to the end of the file.
   len = nbyte;
-  if (len > node_->len() - offset_)
-    len = node_->len() - offset_;
+  if (len > mount_->len(node_) - offset_)
+    len = mount_->len(node_) - offset_;
 
   // Do the read.
-  memcpy(buf, node_->data() + offset_, len);
+  memcpy(buf, mount_->data(node_) + offset_, len);
   offset_ += len;
   mount_->ReleaseLock();
   return len;
@@ -87,27 +87,27 @@ ssize_t FileHandle::write(const void *buf, size_t nbyte) {
 
   // Check that this file handle can be written to.
   if ((flags_ & O_ACCMODE) == O_RDONLY ||
-      node_->is_dir()) {
+      mount_->is_dir(node_)) {
     errno = EBADF;
     mount_->ReleaseLock();
     return -1;
   }
   // Grow the file if needed.
-  if (offset_ + static_cast<off_t>(nbyte) > node_->capacity()) {
+  if (offset_ + static_cast<off_t>(nbyte) > mount_->capacity(node_)) {
     len = offset_ + nbyte;
-    next = (node_->capacity() + 1) * 2;
+    next = (mount_->capacity(node_) + 1) * 2;
     if (next > len) len = next;
-    node_->ReallocData(len);
+    mount_->ReallocData(node_, len);
   }
   // Pad any gap with zeros.
-  if (offset_ > static_cast<off_t>(node_->len()))
-    memset(node_->data()+len, 0, offset_);
+  if (offset_ > static_cast<off_t>(mount_->len(node_)))
+    memset(mount_->data(node_)+len, 0, offset_);
 
   // Write out the block.
-  memcpy(node_->data() + offset_, buf, nbyte);
+  memcpy(mount_->data(node_) + offset_, buf, nbyte);
   offset_ += nbyte;
-  if (offset_ > static_cast<off_t>(node_->len()))
-    node_->set_len(offset_);
+  if (offset_ > static_cast<off_t>(mount_->len(node_)))
+    mount_->set_len(node_, offset_);
   mount_->ReleaseLock();
   return nbyte;
 }
@@ -120,7 +120,7 @@ int FileHandle::getdents(void *buf, unsigned int count) {
   mount_->AcquireLock();
 
   // Check that it is a directory.
-  if (!(node_->is_dir())) {
+  if (!(mount_->is_dir(node_))) {
     errno = ENOTDIR;
     mount_->ReleaseLock();
     return -1;
@@ -129,10 +129,10 @@ int FileHandle::getdents(void *buf, unsigned int count) {
   pos = 0;
   bytes_read = 0;
   dir = (struct dirent*)buf;
-  std::list<Node *> *children = node_->children();
+  std::list<Node2 *> *children = mount_->children(node_);
   assert(children);
   // Skip to the child at the current offset.
-  std::list<Node *>::iterator children_it;
+  std::list<Node2 *>::iterator children_it;
 
   for (children_it = children->begin();
        children_it != children->end() &&
@@ -144,7 +144,7 @@ int FileHandle::getdents(void *buf, unsigned int count) {
     dir->d_ino = 0x60061E;
     dir->d_off = sizeof(struct dirent);
     dir->d_reclen = sizeof(struct dirent);
-    strncpy(dir->d_name, (*children_it)->name().c_str(), sizeof(dir->d_name));
+    strncpy(dir->d_name, mount_->name((*children_it)).c_str(), sizeof(dir->d_name));
     ++dir;
     ++pos;
     bytes_read += sizeof(struct dirent);
@@ -155,14 +155,14 @@ int FileHandle::getdents(void *buf, unsigned int count) {
 
 int FileHandle::fstat(struct stat *buf) {
   mount_->AcquireLock();
-  node_->raw_stat(buf);
+  mount_->raw_stat(node_, buf);
   mount_->ReleaseLock();
   return 0;
 }
 
 int FileHandle::close(void) {
   mount_->AcquireLock();
-  node_->DecrementUseCount();
+  mount_->DecrementUseCount(node_);
   in_use_ = false;
   mount_->ReleaseLock();
   return 0;

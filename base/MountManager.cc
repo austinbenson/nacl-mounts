@@ -91,12 +91,15 @@ void MountManager::ReleaseLock(void) {
   if (pthread_mutex_unlock(&lock_)) assert(0);
 }
 
-Node *MountManager::GetNode(std::string path) {
+std::pair<Mount*, Node2*> MountManager::GetNode(std::string path) {
   std::pair<Mount *, std::string> m_and_p;
+  std::pair<Mount*, Node2*> res;
+  res.first = NULL;
+  res.second = NULL;
 
   // check if path is of length zero
   if (path.length() == 0)
-    return NULL;
+    return res;
 
   // check if the path is an absoulte path
   if (path[0] == '/') {
@@ -104,11 +107,16 @@ Node *MountManager::GetNode(std::string path) {
   }
 
   if ((m_and_p.second).length() == 0) {
-    return NULL;
+    return res;
   } else {
-    if (!m_and_p.first)
-      return NULL;
-    return m_and_p.first->GetNode(m_and_p.second);
+    if (!m_and_p.first) {
+      return res;
+    }
+    res.second = m_and_p.first->GetNode(m_and_p.second);
+    if (res.second != NULL) {
+      res.first = m_and_p.first;
+    }
+    return res;
   }
 }
 

@@ -20,7 +20,6 @@
 #include "../memory/MemMount.h"
 #include "KernelProxy.h"
 #include "Mount.h"
-#include "Node.h"
 #include "PathHandle.h"
 
 class Mount;
@@ -59,7 +58,7 @@ class MountManager {
 
   KernelProxy *kp() { return &kp_; }
 
-  Node *GetNode(std::string path);
+  std::pair<Mount*, Node2*> GetNode(std::string path);
 
  private:
   std::map<std::string, Mount*> mount_map_;

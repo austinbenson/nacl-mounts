@@ -9,6 +9,8 @@
 #include "../common/common.h"
 #include "TestHelpCommon.h"
 
+/*
+
 TEST(MemMountTest, Locks) {
   MemMount *mount = new MemMount();
   mount->AcquireLock();
@@ -140,6 +142,7 @@ TEST(MemMountTest, MountOpen) {
 
   delete mount;
 }
+*/
 
 /*
 static const char* kTestFileName = "/lala.txt";

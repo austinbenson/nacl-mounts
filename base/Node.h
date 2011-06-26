@@ -17,6 +17,8 @@
 #include <list>
 #include <string>
 
+#include "Node2.h"
+
 class MemMount;
 
 // Node is the base class for implementing nodes for
@@ -109,7 +111,7 @@ class Node {
   // which represent the children of this node.
   // If this node is a file or a directory with no children,
   // a NULL pointer is returned.
-  virtual std::list<Node *> *children(void) { return NULL; }
+  virtual std::list<Node2 *> *children(void) { return NULL; }
 
   // set_mount() sets the mount to which this node belongs
   virtual void set_mount(MemMount *mount) { }

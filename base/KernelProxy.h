@@ -76,6 +76,7 @@ class KernelProxy {
   std::vector<FileHandle*> file_handles_;
 
   FileHandle *GetFileHandle(int fd);
+  FileHandle* OpenHandle(Mount* mount, const std::string& path, int oflag, mode_t mode);
   // Add a file to the mount manager's vector of handles.  This method
   // will assign the file handle's fd and will return that value
   // on success.  On failure, -1 is returned.  Note that file handles

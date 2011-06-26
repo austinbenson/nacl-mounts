@@ -123,6 +123,28 @@ int KernelProxy::symlink(const std::string& path1, const std::string& path2) {
   return -1;
 }
 
+FileHandle* KernelProxy::OpenHandle(Mount* mount, const std::string& path,
+                                    int oflag, mode_t mode) {
+  Node* node = mount->MountOpen(path, oflag, mode);
+  if (node == NULL) {
+    return NULL;
+  }
+  // Setup file handle.
+  FileHandle* handle = new FileHandle();
+  handle->set_mount(mount);
+  handle->set_node(node);
+  handle->set_flags(oflag);
+  handle->set_used(1);
+
+  if (oflag & O_APPEND) {
+    handle->set_offset(node->len());
+  } else {
+    handle->set_offset(0);
+  }
+
+  return handle;
+}
+
 int KernelProxy::open(const std::string& path, int oflag) {
   FileHandle *handle;
   std::string p = path;
@@ -144,7 +166,7 @@ int KernelProxy::open(const std::string& path, int oflag) {
     ReleaseLock();
     return -1;
   } else {
-    handle = m_and_p.first->MountOpen(m_and_p.second, oflag);
+    handle = OpenHandle(m_and_p.first, m_and_p.second, oflag, 0);
   }
   ReleaseLock();
   return (!handle) ? -1 : RegisterFileHandle(handle);
@@ -172,10 +194,9 @@ int KernelProxy::open(const std::string& path, int oflag, mode_t mode) {
     return -1;
   } else {
     if (oflag & O_CREAT) {
-      handle = m_and_p.first->MountOpen(m_and_p.second,
-                                        oflag, mode);
+      handle = OpenHandle(m_and_p.first, m_and_p.second, oflag, mode);
     } else {
-      handle = m_and_p.first->MountOpen(m_and_p.second, oflag);
+      handle = OpenHandle(m_and_p.first, m_and_p.second, oflag, 0);
     }
   }
   ReleaseLock();

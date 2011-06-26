@@ -16,10 +16,9 @@ MemMount::~MemMount() {
   delete root_;
 }
 
-FileHandle *MemMount::MountOpen(std::string path, int oflag, ...) {
+Node *MemMount::MountOpen(std::string path, int oflag, ...) {
   Node *node;
   Node *parent;
-  FileHandle *handle;
 
   AcquireLock();
 
@@ -74,20 +73,9 @@ FileHandle *MemMount::MountOpen(std::string path, int oflag, ...) {
   }
 
   node->IncrementUseCount();
-  // Setup file handle.
-  handle = new FileHandle();
-  handle->set_mount(this);
-  handle->set_node(node);
-  handle->set_flags(oflag);
-  handle->set_used(1);
 
-  if (oflag & O_APPEND) {
-    handle->set_offset(node->len());
-  } else {
-    handle->set_offset(0);
-  }
   ReleaseLock();
-  return handle;
+  return node;
 }
 
 int MemMount::mkdir(std::string path, mode_t mode) {

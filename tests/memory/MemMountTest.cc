@@ -4,7 +4,6 @@
  * found in the LICENSE file.
  */
 
-#include "../../base/FileHandle.h"
 #include "../../base/MountManager.h"
 #include "../../memory/MemMount.h"
 #include "../common/common.h"
@@ -19,31 +18,23 @@ TEST(MemMountTest, Locks) {
 
 TEST(MemMountTest, GetNode) {
   MemMount *mount = new MemMount();
-  FileHandle *fh1, *fh2, *fh3, *fh4;
-  FileHandle *fh5 = NULL;
+  Node *node5 = NULL;
   Node *node1, *node2, *node3, *node4;
 
-  fh1 = reinterpret_cast<FileHandle *>(mount->MountOpen("/node1", O_CREAT));
-  fh2 = reinterpret_cast<FileHandle *>(mount->MountOpen("/node2", O_CREAT));
+  node1 = mount->MountOpen("/node1", O_CREAT);
+  node2 = mount->MountOpen("/node2", O_CREAT);
 
-  EXPECT_NE(fh5, fh1);
-  EXPECT_NE(fh5, fh2);
+  EXPECT_NE(node5, node2);
+  EXPECT_NE(node5, node2);
 
-  node1 = fh1->node();
   node1->set_is_dir(true);
-  node2 = fh2->node();
   node2->set_is_dir(true);
 
-  fh3 = reinterpret_cast<FileHandle *>(
-        mount->MountOpen("/node1/node3", O_CREAT));
-  fh4 = reinterpret_cast<FileHandle *>(
-        mount->MountOpen("/node2/node4", O_CREAT));
+  node3 = mount->MountOpen("/node1/node3", O_CREAT);
+  node4 = mount->MountOpen("/node2/node4", O_CREAT);
 
-  EXPECT_NE(fh5, fh3);
-  EXPECT_NE(fh5, fh4);
-
-  node3 = fh3->node();
-  node4 = fh4->node();
+  EXPECT_NE(node5, node3);
+  EXPECT_NE(node5, node4);
 
   EXPECT_EQ(node1, mount->GetNode("/node1"));
   EXPECT_NE(node2, mount->GetNode("/node1"));
@@ -75,31 +66,23 @@ TEST(MemMountTest, GetNode) {
 
 TEST(MemMountTest, GetParentNode) {
   MemMount *mount = new MemMount();
-  FileHandle *fh1, *fh2, *fh3, *fh4;
-  FileHandle *fh5 = NULL;
+  Node *node5 = NULL;
   Node *node1, *node2, *node3, *node4;
 
-  fh1 = reinterpret_cast<FileHandle *>(mount->MountOpen("/node1", O_CREAT));
-  fh2 = reinterpret_cast<FileHandle *>(mount->MountOpen("/node2", O_CREAT));
+  node1 = mount->MountOpen("/node1", O_CREAT);
+  node2 = mount->MountOpen("/node2", O_CREAT);
 
-  EXPECT_NE(fh5, fh1);
-  EXPECT_NE(fh5, fh2);
+  EXPECT_NE(node5, node1);
+  EXPECT_NE(node5, node1);
 
-  node1 = fh1->node();
   node1->set_is_dir(true);
-  node2 = fh2->node();
   node2->set_is_dir(true);
 
-  fh3 = reinterpret_cast<FileHandle *>(
-        mount->MountOpen("/node1/node3", O_CREAT));
-  fh4 = reinterpret_cast<FileHandle *>(
-        mount->MountOpen("/node2/node4", O_CREAT));
+  node3 = mount->MountOpen("/node1/node3", O_CREAT);
+  node4 = mount->MountOpen("/node2/node4", O_CREAT);
 
-  EXPECT_NE(fh5, fh3);
-  EXPECT_NE(fh5, fh4);
-
-  node3 = fh3->node();
-  node4 = fh4->node();
+  EXPECT_NE(node5, node3);
+  EXPECT_NE(node5, node4);
 
   EXPECT_EQ(mount->root(), mount->GetParentNode("/hi"));
   EXPECT_EQ(node1, mount->GetParentNode("/node1/node3"));
@@ -115,8 +98,8 @@ TEST(MemMountTest, mkdir) {
   MemMount *mount = new MemMount();
   Node *node = CreateNode("node", NULL, mount);
   Node *node2 = CreateNode("node2", NULL, mount);
-  FileHandle *fh;
-  FileHandle *fh_null = NULL;
+  Node *node3;
+  Node *node_null = NULL;
 
   EXPECT_EQ(0, mount->mkdir("/hello/", 0));
   EXPECT_EQ(-1, mount->mkdir("/hello/", 0));
@@ -131,10 +114,9 @@ TEST(MemMountTest, mkdir) {
 
   EXPECT_EQ(0, mount->mkdir("/hello/world/again/", 0));
 
-  fh = reinterpret_cast<FileHandle *>(
-    mount->MountOpen("/hello/world/again/../../world/again/again", O_CREAT));
+  node3 = mount->MountOpen("/hello/world/again/../../world/again/again", O_CREAT);
 
-  EXPECT_NE(fh_null, fh);
+  EXPECT_NE(node_null, node3);
 
   delete node;
   delete node2;
@@ -143,16 +125,16 @@ TEST(MemMountTest, mkdir) {
 
 TEST(MemMountTest, MountOpen) {
   MemMount *mount = new MemMount();
-  FileHandle *fh = NULL;
+  Node *node = NULL;
 
   EXPECT_EQ(0, mount->mkdir("/node1", O_CREAT));
-  EXPECT_NE(fh, mount->MountOpen("/node2", O_CREAT));
-  EXPECT_NE(fh, mount->MountOpen("/node1/node3", O_CREAT));
-  EXPECT_NE(fh, mount->MountOpen("/node1/node4/", O_CREAT));
-  EXPECT_EQ(fh, mount->MountOpen("/node1/", O_CREAT));
-  EXPECT_NE(fh, mount->MountOpen("/node1/node4/../../node1/./node5", O_CREAT));
-  EXPECT_NE(fh, mount->MountOpen("/node1/node3/../../node1/./", 0));
-  EXPECT_EQ(fh, mount->MountOpen("/node1/node3/../../node1/./",
+  EXPECT_NE(node, mount->MountOpen("/node2", O_CREAT));
+  EXPECT_NE(node, mount->MountOpen("/node1/node3", O_CREAT));
+  EXPECT_NE(node, mount->MountOpen("/node1/node4/", O_CREAT));
+  EXPECT_EQ(node, mount->MountOpen("/node1/", O_CREAT));
+  EXPECT_NE(node, mount->MountOpen("/node1/node4/../../node1/./node5", O_CREAT));
+  EXPECT_NE(node, mount->MountOpen("/node1/node3/../../node1/./", 0));
+  EXPECT_EQ(node, mount->MountOpen("/node1/node3/../../node1/./",
             O_CREAT | O_EXCL));
 
   delete mount;

@@ -63,7 +63,7 @@ class MemMount: public Mount {
   void ReallocData(Node2* node, int len);
   void raw_stat(Node2* node, struct stat *buf);
   void DecrementUseCount(Node2* node);
-  std::list<Node2 *> *children(Node2* node);
+  int Getdents(Node2* node, off_t offset, struct dirent *dirp, unsigned int count);
   std::string name(Node2* node);
   char *data(Node2* node);
 

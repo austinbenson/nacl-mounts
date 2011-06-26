@@ -280,6 +280,8 @@ int KernelProxy::ioctl(int fd, unsigned long request) {
 
 int KernelProxy::getdents(int fd, void *buf, unsigned int count) {
   FileHandle *handle;
+  Mount* mount;
+  Node2 *node;
 
   AcquireLock();
   // check if fd is valid and handle exists
@@ -288,8 +290,11 @@ int KernelProxy::getdents(int fd, void *buf, unsigned int count) {
     errno = EBADF;
     return -1;
   }
+  mount = handle->mount();
+  node = handle->node();
   ReleaseLock();
-  return handle->getdents(buf, count);
+  // TODO(Krasin): support offset for getdents
+  return mount->Getdents(node, 0, (struct dirent*)buf, count);
 }
 
 off_t KernelProxy::lseek(int fd, off_t offset, int whence) {

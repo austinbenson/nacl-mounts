@@ -78,7 +78,7 @@ class MemNode : public Node {
   // which represent the children of this node.
   // If this node is a file or a directory with no children,
   // a NULL pointer is returned.
-  virtual std::list<Node2 *> *children(void);
+  virtual std::list<Node *> *children(void);
 
   // set_name() sets the name of this node.  This is not the
   // path but rather the name of the file or directory

@@ -112,47 +112,6 @@ ssize_t FileHandle::write(const void *buf, size_t nbyte) {
   return nbyte;
 }
 
-int FileHandle::getdents(void *buf, unsigned int count) {
-  int pos;
-  struct dirent *dir;
-  int bytes_read;
-
-  mount_->AcquireLock();
-
-  // Check that it is a directory.
-  if (!(mount_->is_dir(node_))) {
-    errno = ENOTDIR;
-    mount_->ReleaseLock();
-    return -1;
-  }
-
-  pos = 0;
-  bytes_read = 0;
-  dir = (struct dirent*)buf;
-  std::list<Node2 *> *children = mount_->children(node_);
-  assert(children);
-  // Skip to the child at the current offset.
-  std::list<Node2 *>::iterator children_it;
-
-  for (children_it = children->begin();
-       children_it != children->end() &&
-       bytes_read + sizeof(struct dirent) <= count;
-       ++children_it) {
-    memset(dir, 0, sizeof(struct dirent));
-    // We want d_ino to be non-zero because readdir()
-    // will return null if d_ino is zero.
-    dir->d_ino = 0x60061E;
-    dir->d_off = sizeof(struct dirent);
-    dir->d_reclen = sizeof(struct dirent);
-    strncpy(dir->d_name, mount_->name((*children_it)).c_str(), sizeof(dir->d_name));
-    ++dir;
-    ++pos;
-    bytes_read += sizeof(struct dirent);
-  }
-  mount_->ReleaseLock();
-  return bytes_read;
-}
-
 int FileHandle::fstat(struct stat *buf) {
   mount_->AcquireLock();
   mount_->raw_stat(node_, buf);

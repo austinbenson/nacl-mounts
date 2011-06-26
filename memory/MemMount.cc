@@ -5,6 +5,8 @@
  */
 #include "MemMount.h"
 #include "MemNode.h"
+#include "../base/dirent.h"
+
 
 MemMount::MemMount() {
   pthread_mutex_init(&lock_, NULL);
@@ -128,18 +130,23 @@ void MemMount::ReleaseLock(void) {
 }
 
 Node2 *MemMount::GetNode(std::string path) {
-  return new MemNode2(GetMemNode(path));
+  Node* node = GetMemNode(path);
+  if (node == NULL) {
+    return NULL;
+  }
+  return new MemNode2(node);
 }
 
 Node2 *MemMount::GetParentNode(std::string path) {
-  return new MemNode2(GetParentMemNode(path));
+  Node* node = GetParentMemNode(path);
+  return new MemNode2(node);
 }
 
 Node *MemMount::GetMemNode(std::string path) {
   Node *node;
   std::list<std::string> path_components;
-  std::list<Node2 *>::iterator it;
-  std::list<Node2 *> *children;
+  std::list<Node *>::iterator it;
+  std::list<Node *> *children;
 
   // Get in canonical form.
   if (path.length() == 0)
@@ -162,8 +169,7 @@ Node *MemMount::GetMemNode(std::string path) {
     // loop through children
     children = node->children();
     for (it = children->begin(); it != children->end(); ++it) {
-      Node* cur = reinterpret_cast<MemNode2*>(*it)->node();
-      if ((cur->name()).compare(*path_it) == 0) {
+      if (((*it)->name()).compare(*path_it) == 0) {
         break;
       }
     }
@@ -172,7 +178,7 @@ Node *MemMount::GetMemNode(std::string path) {
       errno = ENOENT;
       return NULL;
     } else {
-      node = reinterpret_cast<MemNode2*>(*it)->node();
+      node = *it;
     }
   }
   // We should now have completed the walk.
@@ -232,8 +238,44 @@ void MemMount::DecrementUseCount(Node2* node) {
   return reinterpret_cast<MemNode2*>(node)->node()->DecrementUseCount();
 }
 
-std::list<Node2 *> *MemMount::children(Node2* node) {
-  return reinterpret_cast<MemNode2*>(node)->node()->children();
+int MemMount::Getdents(Node2* node2, off_t offset,
+                       struct dirent *dir, unsigned int count) {
+  AcquireLock();
+  Node* node = reinterpret_cast<MemNode2*>(node2)->node();
+  // Check that it is a directory.
+  if (!(node->is_dir())) {
+    errno = ENOTDIR;
+    ReleaseLock();
+    return -1;
+  }
+
+  std::list<Node*>* children = node->children();
+  int pos;
+  int bytes_read;
+
+  pos = 0;
+  bytes_read = 0;
+  assert(children);
+  // Skip to the child at the current offset.
+  std::list<Node *>::iterator children_it;
+
+  for (children_it = children->begin();
+       children_it != children->end() &&
+           bytes_read + sizeof(struct dirent) <= count;
+       ++children_it) {
+    memset(dir, 0, sizeof(struct dirent));
+    // We want d_ino to be non-zero because readdir()
+    // will return null if d_ino is zero.
+    dir->d_ino = 0x60061E;
+    dir->d_off = sizeof(struct dirent);
+    dir->d_reclen = sizeof(struct dirent);
+    strncpy(dir->d_name, (*children_it)->name().c_str(), sizeof(dir->d_name));
+    ++dir;
+    ++pos;
+    bytes_read += sizeof(struct dirent);
+  }
+  ReleaseLock();
+  return bytes_read;
 }
 
 std::string MemMount::name(Node2* node) {

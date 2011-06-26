@@ -45,9 +45,10 @@ class Mount {
   virtual void ReallocData(Node2* node, int len) {}
   virtual void raw_stat(Node2* node, struct stat *buf) {}
   virtual void DecrementUseCount(Node2* node) { }
-  virtual std::list<Node2 *> *children(Node2* node) { return NULL; }
   virtual std::string name(Node2* node) { return ""; }
   virtual char *data(Node2* node) { return 0; }
+  virtual int Getdents(Node2* node, off_t offset,
+                       struct dirent *dirp, unsigned int count) { return -1; }
 
   virtual void AcquireLock(void) {}
   virtual void ReleaseLock(void) {}

@@ -124,14 +124,9 @@ void MemNode::ReallocData(int len) {
   assert(data_);
 }
 
-std::list<Node2 *> *MemNode::children() {
+std::list<Node *> *MemNode::children() {
   if (is_dir()) {
-    std::list<Node2*>* res = new std::list<Node2*>();
-    std::list<Node *>::iterator it;
-    for (it = children_.begin(); it != children_.end(); ++it) {
-      res->push_back(new MemNode2(*it));
-    }
-    return res;
+    return &children_;
   } else {
     return NULL;
   }

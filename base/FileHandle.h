@@ -15,14 +15,9 @@
 #include <list>
 #include <string>
 
+#include "dirent.h"
 #include "Node2.h"
 
-struct dirent {
-  ino_t d_ino;
-  off_t d_off;
-  uint16_t d_reclen;
-  char d_name[256];
-};
 
 class Mount;
 
@@ -39,7 +34,6 @@ class FileHandle {
   off_t lseek(off_t offset, int whence);
   ssize_t read(void *buf, size_t nbyte);
   ssize_t write(const void *buf, size_t nbyte);
-  int getdents(void *buf, unsigned int count);
   int fstat(struct stat *buf);
   int isatty() { return 0; }
   int close(void);
@@ -63,6 +57,7 @@ class FileHandle {
   void set_offset(int offset) { offset_ = offset; }
 
   void set_mount(Mount *mount) { mount_ = mount; }
+  Mount* mount() { return mount_; }
 
   void set_in_use(bool in_use) { in_use_ = in_use; }
   bool in_use(void) { return in_use_; }

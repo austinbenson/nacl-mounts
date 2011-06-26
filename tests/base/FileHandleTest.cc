@@ -8,8 +8,19 @@
 #include "../../memory/MemMount.h"
 #include "../../memory/MemNode.h"
 #include "../common/common.h"
-#include "TestBaseCommon.h"
 #include "../memory/TestHelpCommon.h"
+
+FileHandle *CreateFileHandle(MemMount *mount, Node *node,
+                                   int used, int offset, int flags) {
+  FileHandle *mfh = new FileHandle();
+  mfh->set_mount(mount);
+  mfh->set_node(node);
+  mfh->set_used(used);
+  mfh->set_offset(offset);
+  mfh->set_flags(flags);
+  return mfh;
+}
+
 
 TEST(FileHandleTest, lseek) {
   MemMount *mount = new MemMount();

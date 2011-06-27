@@ -17,13 +17,6 @@ FileHandle::FileHandle() {
 FileHandle::~FileHandle() {
 }
 
-int FileHandle::fstat(struct stat *buf) {
-  mount->AcquireLock();
-  mount->raw_stat(node, buf);
-  mount->ReleaseLock();
-  return 0;
-}
-
 int FileHandle::close(void) {
   mount->AcquireLock();
   mount->DecrementUseCount(node);

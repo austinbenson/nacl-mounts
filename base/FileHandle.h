@@ -35,7 +35,6 @@ class FileHandle {
   FileHandle();
   virtual ~FileHandle();
 
-  int fstat(struct stat *buf);
   int close(void);
 
   // set_used() sets the used indicator for this

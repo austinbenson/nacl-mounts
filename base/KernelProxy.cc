@@ -265,15 +265,13 @@ ssize_t KernelProxy::write(int fd, const void *buf, size_t count) {
 int KernelProxy::fstat(int fd, struct stat *buf) {
   FileHandle *handle;
 
-  AcquireLock();
   // check if fd is valid and handle exists
   if (!(handle = GetFileHandle(fd))) {
-    ReleaseLock();
     errno = EBADF;
     return -1;
   }
-  ReleaseLock();
-  return handle->fstat(buf);
+
+  return handle->mount->stat(handle->node, buf);
 }
 
 int KernelProxy::ioctl(int fd, unsigned long request) {

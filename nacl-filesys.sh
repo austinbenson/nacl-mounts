@@ -23,7 +23,6 @@ CustomBuildStep() {
   ${NACLCC} -c ${START_DIR}/base/MountManager.cc -o MountManager.o
   ${NACLCC} -c ${START_DIR}/base/FileHandle.cc -o FileHandle.o
   ${NACLCC} -c ${START_DIR}/base/KernelProxy.cc -o KernelProxy.o
-  ${NACLCC} -c ${START_DIR}/base/Node.cc -o Node.o
   ${NACLCC} -c ${START_DIR}/base/PathHandle.cc -o PathHandle.o
   ${NACLCC} -c ${START_DIR}/base/Entry.cc -o Entry.o
   ${NACLCC} -c ${START_DIR}/memory/MemMount.cc -o MemMount.o
@@ -31,7 +30,6 @@ CustomBuildStep() {
   ${NACLAR} rcs filesys.a \
       MountManager.o \
       KernelProxy.o \
-      Node.o \
       PathHandle.o \
       Entry.o \
       MemMount.o \
@@ -51,7 +49,6 @@ CustomInstallStep() {
 CustomTestBuildStep() {
   Banner "Building Tests for ${PACKAGE_NAME}/base"
   ${NACLCC} -c ${START_DIR}/base/MountManager.cc -o MountManager.o
-  ${NACLCC} -c ${START_DIR}/base/Node.cc -o Node.o
   ${NACLCC} -c ${START_DIR}/base/Entry.cc -o Entry.o
 }
 

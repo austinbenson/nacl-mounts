@@ -45,6 +45,8 @@ class MemMount: public Mount {
   // is used internally to the memory mount structure.
   MemNode *GetMemNode(std::string path);
 
+  MemNode *ToMemNode(Node2* node);
+
   // GetMemParentNode() is like GetParentNode(), but
   // the method is used internally to the memory mount
   // structure.

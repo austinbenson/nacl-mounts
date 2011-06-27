@@ -20,6 +20,13 @@ MemMount::~MemMount() {
   delete root_;
 }
 
+MemNode* MemMount::ToMemNode(Node2 *node) {
+  if (node == NULL) {
+    return NULL;
+  }
+  return reinterpret_cast<MemNode2*>(node)->node();
+}
+
 Node2 *MemMount::MountOpen(std::string path, int oflag, mode_t mode) {
   MemNode *node;
   MemNode *parent;
@@ -191,51 +198,51 @@ MemNode *MemMount::GetParentMemNode(std::string path) {
 }
 
 bool MemMount::is_dir(Node2 *node) {
-  return reinterpret_cast<MemNode2*>(node)->node()->is_dir();
+  return ToMemNode(node)->is_dir();
 }
 
 size_t MemMount::len(Node2 *node) {
-  return reinterpret_cast<MemNode2*>(node)->node()->len();
+  return ToMemNode(node)->len();
 }
 
 int MemMount::capacity(Node2 *node) {
-  return reinterpret_cast<MemNode2*>(node)->node()->capacity();
+  return ToMemNode(node)->capacity();
 }
 
 int MemMount::chmod(Node2 *node, mode_t mode) {
-  return reinterpret_cast<MemNode2*>(node)->node()->chmod(mode);
+  return ToMemNode(node)->chmod(mode);
 }
 
 int MemMount::stat(Node2* node, struct stat *buf) {
-  return reinterpret_cast<MemNode2*>(node)->node()->stat(buf);
+  return ToMemNode(node)->stat(buf);
 }
 
 int MemMount::remove(Node2* node) {
-  return reinterpret_cast<MemNode2*>(node)->node()->remove();
+  return ToMemNode(node)->remove();
 }
 
 int MemMount::access(Node2* node, int amode) {
-  return reinterpret_cast<MemNode2*>(node)->node()->access(amode);
+  return ToMemNode(node)->access(amode);
 }
 
 int MemMount::rmdir(Node2* node) {
-  return reinterpret_cast<MemNode2*>(node)->node()->rmdir();
+  return ToMemNode(node)->rmdir();
 }
 
 void MemMount::set_len(Node2* node, size_t len) {
-  return reinterpret_cast<MemNode2*>(node)->node()->set_len(len);
+  return ToMemNode(node)->set_len(len);
 }
 
 void MemMount::ReallocData(Node2* node, int len) {
-  return reinterpret_cast<MemNode2*>(node)->node()->ReallocData(len);
+  return ToMemNode(node)->ReallocData(len);
 }
 
 void MemMount::raw_stat(Node2* node, struct stat *buf) {
-  return reinterpret_cast<MemNode2*>(node)->node()->raw_stat(buf);
+  return ToMemNode(node)->raw_stat(buf);
 }
 
 void MemMount::DecrementUseCount(Node2* node) {
-  return reinterpret_cast<MemNode2*>(node)->node()->DecrementUseCount();
+  return ToMemNode(node)->DecrementUseCount();
 }
 
 int MemMount::Getdents(Node2* node2, off_t offset,
@@ -279,9 +286,9 @@ int MemMount::Getdents(Node2* node2, off_t offset,
 }
 
 std::string MemMount::name(Node2* node) {
-  return reinterpret_cast<MemNode2*>(node)->node()->name();
+  return ToMemNode(node)->name();
 }
 
 char *MemMount::data(Node2* node) {
-  return reinterpret_cast<MemNode2*>(node)->node()->data();
+  return ToMemNode(node)->data();
 }

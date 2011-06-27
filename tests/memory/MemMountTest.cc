@@ -18,9 +18,9 @@ TEST(MemMountTest, Locks) {
   delete mount;
 }
 
-TEST(MemMountTest, GetNode) {
+TEST(MemMountTest, GetMemNode) {
   MemMount *mount = new MemMount();
-  Node *node1, *node2, *node3, *node4;
+  MemNode *node1, *node2, *node3, *node4;
   mode_t mode = 0755;
 
   Node2* node21 = mount->MountOpen("/node1", O_CREAT, mode);
@@ -80,7 +80,7 @@ TEST(MemMountTest, GetNode) {
 
 TEST(MemMountTest, GetParentNode) {
   MemMount *mount = new MemMount();
-  Node *node1, *node2, *node3, *node4;
+  MemNode *node1, *node2, *node3, *node4;
   mode_t mode = 0755;
 
   Node2* node21 = mount->MountOpen("/node1", O_CREAT, mode);
@@ -122,8 +122,8 @@ TEST(MemMountTest, GetParentNode) {
 
 TEST(MemMountTest, mkdir) {
   MemMount *mount = new MemMount();
-  Node *node1 = CreateNode("node1", NULL, mount);
-  Node *node2 = CreateNode("node2", NULL, mount);
+  MemNode *node1 = CreateMemNode("node1", NULL, mount);
+  MemNode *node2 = CreateMemNode("node2", NULL, mount);
   Node2 *node23;
   mode_t mode = 0755;
 
@@ -146,7 +146,7 @@ TEST(MemMountTest, mkdir) {
   node23 = mount->MountOpen("/hello/world/again/../../world/again/again", O_CREAT, mode);
   CHECK(node23);
 
-  Node* node3 = reinterpret_cast<MemNode2*>(node23)->node();
+  MemNode* node3 = reinterpret_cast<MemNode2*>(node23)->node();
   CHECK(node3);
 
   delete node1;

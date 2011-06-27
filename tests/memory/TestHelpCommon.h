@@ -12,9 +12,9 @@
   ASSERT_NE((void*)NULL, x); \
 } while(0)
 
-Node *CreateNode(std::string name, Node *parent,
+MemNode *CreateMemNode(std::string name, MemNode *parent,
                     MemMount *mount, bool is_dir = false) {
-  Node *node = new MemNode();
+  MemNode *node = new MemNode();
   node->set_name(name);
   node->set_parent(parent);
   node->set_mount(mount);

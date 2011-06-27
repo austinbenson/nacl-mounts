@@ -10,10 +10,10 @@
 #include <sys/stat.h>
 #include <list>
 #include <string>
-#include "../base/Node.h"
 #include "MemMount.h"
 
 class MemMount;
+class MemNode;
 
 // A macro to disallow the evil copy constructor and operator= functions
 // This should be used in the private: declarations for a class
@@ -21,30 +21,11 @@ class MemMount;
   TypeName(const TypeName&);                    \
   void operator=(const TypeName&)
 
-
-class MemNode2 : public Node2 {
- public:
-  explicit MemNode2(Node* node) : node_(node) {
-  }
-
-  virtual ~MemNode2() {
-    delete node_;
-  }
-
-  Node* node() { return node_; }
-
- private:
-  Node* node_;
-
-  DISALLOW_COPY_AND_ASSIGN(MemNode2);
-};
-
-
 // MemNode is the node object for the memory mount (mem_mount class)
 // This class overrides all of the MountNode sys call methods.  In
 // addition, this class keeps track of parent/child relationships by
 // maintaining a parent node pointer and a list of children.
-class MemNode : public Node {
+class MemNode {
  public:
   // constructor initializes the private variables
   MemNode();
@@ -64,21 +45,21 @@ class MemNode : public Node {
   // Add child to this node's children.  This method will do nothing
   // if this node is a directory or if child points to a child that is
   // not in the children list of this node
-  virtual void AddChild(Node *child);
+  virtual void AddChild(MemNode *child);
 
   // Remove child from this node's children.  This method will do
   // nothing if the node is not a directory
-  virtual void RemoveChild(Node *child);
+  virtual void RemoveChild(MemNode *child);
 
   // Reallocate the size of data to be len bytes.  Copies the
   // current data to the reallocated memory.
   virtual void ReallocData(int len);
 
-  // children() returns a list of Node pointers
+  // children() returns a list of MemNode pointers
   // which represent the children of this node.
   // If this node is a file or a directory with no children,
   // a NULL pointer is returned.
-  virtual std::list<Node *> *children(void);
+  virtual std::list<MemNode *> *children(void);
 
   // set_name() sets the name of this node.  This is not the
   // path but rather the name of the file or directory
@@ -89,12 +70,12 @@ class MemNode : public Node {
 
   // set_parent() sets the parent node of this node to
   // parent_
-  virtual void set_parent(Node *parent) { parent_ = parent; }
+  virtual void set_parent(MemNode *parent) { parent_ = parent; }
 
   // parent() returns a pointer to the parent node of
   // this node.  If this node is the root node, NULL
   // is returned.
-  virtual Node *parent(void) { return parent_; }
+  virtual MemNode *parent(void) { return parent_; }
 
   // increase the use count by one
   virtual void IncrementUseCount(void) { ++use_count_; }
@@ -129,15 +110,37 @@ class MemNode : public Node {
   // stat helper
   virtual void raw_stat(struct stat *buf);
 
+  bool is_dir() { return is_dir_; }
+  void set_is_dir(bool is_dir) { is_dir_ = is_dir; }
+
  private:
   std::string name_;
-  Node *parent_;
+  MemNode *parent_;
   MemMount *mount_;
   char *data_;
   size_t len_;
   size_t capacity_;
   int use_count_;
-  std::list<Node *> children_;
+  bool is_dir_;
+  std::list<MemNode *> children_;
 };
+
+class MemNode2 : public Node2 {
+ public:
+  explicit MemNode2(MemNode* node) : node_(node) {
+  }
+
+  virtual ~MemNode2() {
+    delete node_;
+  }
+
+  MemNode* node() { return node_; }
+
+ private:
+  MemNode* node_;
+
+  DISALLOW_COPY_AND_ASSIGN(MemNode2);
+};
+
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_MEMORY_MEMNODE_H_

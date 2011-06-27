@@ -13,23 +13,23 @@
 
 TEST(MemNodeTest, AddChildren) {
   MemMount *mnt = new MemMount();
-  Node *node1 = CreateNode("node1", NULL, mnt, true);
-  Node *node2 = CreateNode("node2", node1, mnt, true);
-  Node *node3 = CreateNode("node3", node1, mnt, false);
-  Node *node4 = CreateNode("node4", node1, mnt, false);
-  Node *node5 = CreateNode("node5", node2, mnt, false);
+  MemNode *node1 = CreateMemNode("node1", NULL, mnt, true);
+  MemNode *node2 = CreateMemNode("node2", node1, mnt, true);
+  MemNode *node3 = CreateMemNode("node3", node1, mnt, false);
+  MemNode *node4 = CreateMemNode("node4", node1, mnt, false);
+  MemNode *node5 = CreateMemNode("node5", node2, mnt, false);
   node1->AddChild(node2);
   node1->AddChild(node3);
   node1->AddChild(node4);
   node2->AddChild(node5);
 
-  std::list<Node *> *children;
-  std::list<Node *> *children2;
-  std::list<Node *> *children3;
+  std::list<MemNode *> *children;
+  std::list<MemNode *> *children2;
+  std::list<MemNode *> *children3;
   children = node1->children();
   EXPECT_EQ(3, static_cast<int>(children->size()));
 
-  std::list<Node *>::iterator it;
+  std::list<MemNode *>::iterator it;
   it = children->begin();
   EXPECT_EQ(node2->name(), (*it)->name());
   children2 = (*it)->children();
@@ -64,12 +64,12 @@ TEST(MemNodeTest, AddChildren) {
 
 TEST(MemNodeTest, RemoveChildren) {
   MemMount *mnt = new MemMount();
-  Node *node1 = CreateNode("node1", NULL, mnt, true);
-  Node *node2 = CreateNode("node2", node1, mnt, true);
-  Node *node3 = CreateNode("node3", node1, mnt, true);
-  Node *node4 = CreateNode("node4", node1, mnt, true);
-  Node *node5 = CreateNode("node5", node2, mnt, false);
-  Node *node6 = CreateNode("node6", node4, mnt);
+  MemNode *node1 = CreateMemNode("node1", NULL, mnt, true);
+  MemNode *node2 = CreateMemNode("node2", node1, mnt, true);
+  MemNode *node3 = CreateMemNode("node3", node1, mnt, true);
+  MemNode *node4 = CreateMemNode("node4", node1, mnt, true);
+  MemNode *node5 = CreateMemNode("node5", node2, mnt, false);
+  MemNode *node6 = CreateMemNode("node6", node4, mnt);
 
   node1->AddChild(node2);
   node1->AddChild(node3);
@@ -79,8 +79,8 @@ TEST(MemNodeTest, RemoveChildren) {
   node1->RemoveChild(node2);
   node1->RemoveChild(node3);
 
-  std::list<Node *> *children;
-  std::list<Node *>::iterator it;
+  std::list<MemNode *> *children;
+  std::list<MemNode *>::iterator it;
 
   children = node1->children();
   EXPECT_EQ(1, static_cast<int>(children->size()));
@@ -120,7 +120,7 @@ TEST(MemNodeTest, RemoveChildren) {
 TEST(MemNodeTest, Stat) {
   MemMount *mnt = new MemMount();
   struct stat *buf = (struct stat *)malloc(sizeof(struct stat));
-  Node *node = CreateNode("node", NULL, mnt);
+  MemNode *node = CreateMemNode("node", NULL, mnt);
   node->set_is_dir(false);
   int size = 128;
   node->ReallocData(size);
@@ -133,13 +133,13 @@ TEST(MemNodeTest, Stat) {
 
 TEST(MemNodeTest, remove) {
   MemMount *mnt = new MemMount();
-  Node *node1 = CreateNode("node1", NULL, mnt, true);
-  Node *node2 = CreateNode("node2", node1, mnt);
-  Node *node3 = CreateNode("node3", node1, mnt, true);
-  Node *node4 = CreateNode("node3", node3, mnt);
+  MemNode *node1 = CreateMemNode("node1", NULL, mnt, true);
+  MemNode *node2 = CreateMemNode("node2", node1, mnt);
+  MemNode *node3 = CreateMemNode("node3", node1, mnt, true);
+  MemNode *node4 = CreateMemNode("node3", node3, mnt);
   node1->AddChild(node2);
 
-  std::list<Node *> *children;
+  std::list<MemNode *> *children;
   children = node1->children();
   EXPECT_EQ(1, static_cast<int>(children->size()));
 
@@ -164,16 +164,16 @@ TEST(MemNodeTest, remove) {
 
 TEST(MemNodeTest, rmdir) {
   MemMount *mnt = new MemMount();
-  Node *node1 = CreateNode("node1", NULL, mnt, true);
-  Node *node2 = CreateNode("node2", node1, mnt, true);
-  Node *node3 = CreateNode("node3", node1, mnt);
-  Node *node4 = CreateNode("node4", node2, mnt, true);
+  MemNode *node1 = CreateMemNode("node1", NULL, mnt, true);
+  MemNode *node2 = CreateMemNode("node2", node1, mnt, true);
+  MemNode *node3 = CreateMemNode("node3", node1, mnt);
+  MemNode *node4 = CreateMemNode("node4", node2, mnt, true);
 
   node1->AddChild(node2);
   node1->AddChild(node3);
   EXPECT_EQ(-1, node1->rmdir());
 
-  std::list<Node *> *children;
+  std::list<MemNode *> *children;
   node2->AddChild(node4);
   children = node2->children();
   EXPECT_EQ(1, static_cast<int>(children->size()));
@@ -197,7 +197,7 @@ TEST(MemNodeTest, rmdir) {
 
 TEST(MemNodeTest, UseCount) {
   MemMount *mnt = new MemMount();
-  Node *node1 = CreateNode("node1", NULL, mnt);
+  MemNode *node1 = CreateMemNode("node1", NULL, mnt);
   int i;
 
   for (i = 0; i < 10; i++) {
@@ -216,7 +216,7 @@ TEST(MemNodeTest, UseCount) {
 
 TEST(MemNodeTest, Stubs) {
   MemMount *mnt = new MemMount();
-  Node *node1 = CreateNode("node1", NULL, mnt);
+  MemNode *node1 = CreateMemNode("node1", NULL, mnt);
   EXPECT_EQ(0, node1->access(0));
   EXPECT_EQ(0, node1->utime(NULL));
   EXPECT_EQ(0, node1->unlink());
@@ -227,7 +227,7 @@ TEST(MemNodeTest, Stubs) {
 
 TEST(MemNodeTest, ReallocData) {
   MemMount *mnt = new MemMount();
-  Node *node1 = CreateNode("node1", NULL, mnt);
+  MemNode *node1 = CreateMemNode("node1", NULL, mnt);
 
   node1->ReallocData(10);
   EXPECT_EQ(10, node1->capacity());
@@ -242,7 +242,7 @@ TEST(MemNodeTest, ReallocData) {
 
 TEST(MemNodeTest, Access) {
   MemMount *mnt = new MemMount();
-  Node *node1 = CreateNode("node1", NULL, mnt);
+  MemNode *node1 = CreateMemNode("node1", NULL, mnt);
   int amode;
 
   amode = F_OK;

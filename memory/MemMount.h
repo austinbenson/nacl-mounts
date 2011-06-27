@@ -11,7 +11,7 @@
 #include "../base/Mount.h"
 #include "../base/PathHandle.h"
 
-class Node;
+class MemNode;
 
 // mem_mount is a storage mount representing local memory.  The node
 // class is MemNode.
@@ -39,16 +39,16 @@ class MemMount: public Mount {
   // Given a path, GetParentNode returns the parent
   // of the Node located at path.  If path is not a valid
   // path for a Node, NULL is returned.
-  Node *GetParentNode(std::string path);
+  MemNode *GetParentNode(std::string path);
 
   // GetMemNode() is like GetNode(), but the method
   // is used internally to the memory mount structure.
-  Node *GetMemNode(std::string path);
+  MemNode *GetMemNode(std::string path);
 
   // GetMemParentNode() is like GetParentNode(), but
   // the method is used internally to the memory mount
   // structure.
-  Node *GetParentMemNode(std::string path);
+  MemNode *GetParentMemNode(std::string path);
 
   // Temp methods for Node -> Node2 -> ino_t transition period.
   bool is_dir(Node2* node);
@@ -67,7 +67,7 @@ class MemMount: public Mount {
   std::string name(Node2* node);
   char *data(Node2* node);
 
-  Node *root() { return root_; }
+  MemNode *root() { return root_; }
 
   // concurrency tools
   virtual void AcquireLock(void);
@@ -76,7 +76,7 @@ class MemMount: public Mount {
  private:
   PathHandle *path_handle_;
   pthread_mutex_t lock_;
-  Node *root_;
+  MemNode *root_;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_MEMORY_MEMMOUNT_H_

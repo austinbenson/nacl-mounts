@@ -3,7 +3,12 @@
  * Use of this source code is governed by a BSD-style license that be
  * found in the LICENSE file.
  */
+
 #include "MemNode.h"
+#include <errno.h>
+#include <stdio.h>
+#include <assert.h>
+#include <malloc.h>
 
 MemNode::MemNode() {
   data_ = NULL;
@@ -104,13 +109,13 @@ int MemNode::unlink() {
   return 0;
 }
 
-void MemNode::AddChild(Node *child) {
+void MemNode::AddChild(MemNode *child) {
   if (!(is_dir()))
     return;
   children_.push_back(child);
 }
 
-void MemNode::RemoveChild(Node *child) {
+void MemNode::RemoveChild(MemNode *child) {
   if (!(is_dir()))
     return;
   children_.remove(child);
@@ -124,7 +129,7 @@ void MemNode::ReallocData(int len) {
   assert(data_);
 }
 
-std::list<Node *> *MemNode::children() {
+std::list<MemNode *> *MemNode::children() {
   if (is_dir()) {
     return &children_;
   } else {

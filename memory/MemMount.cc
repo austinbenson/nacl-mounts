@@ -6,7 +6,8 @@
 #include "MemMount.h"
 #include "MemNode.h"
 #include "../base/dirent.h"
-
+#include <assert.h>
+#include <errno.h>
 
 MemMount::MemMount() {
   pthread_mutex_init(&lock_, NULL);
@@ -20,8 +21,8 @@ MemMount::~MemMount() {
 }
 
 Node2 *MemMount::MountOpen(std::string path, int oflag, mode_t mode) {
-  Node *node;
-  Node *parent;
+  MemNode *node;
+  MemNode *parent;
 
   AcquireLock();
 
@@ -82,8 +83,8 @@ Node2 *MemMount::MountOpen(std::string path, int oflag, mode_t mode) {
 }
 
 int MemMount::mkdir(std::string path, mode_t mode) {
-  Node *node;
-  Node *nnode;
+  MemNode *node;
+  MemNode *nnode;
 
   AcquireLock();
 
@@ -130,22 +131,22 @@ void MemMount::ReleaseLock(void) {
 }
 
 Node2 *MemMount::GetNode(std::string path) {
-  Node* node = GetMemNode(path);
+  MemNode* node = GetMemNode(path);
   if (node == NULL) {
     return NULL;
   }
   return new MemNode2(node);
 }
 
-Node *MemMount::GetParentNode(std::string path) {
+MemNode *MemMount::GetParentNode(std::string path) {
   return GetParentMemNode(path);
 }
 
-Node *MemMount::GetMemNode(std::string path) {
-  Node *node;
+MemNode *MemMount::GetMemNode(std::string path) {
+  MemNode *node;
   std::list<std::string> path_components;
-  std::list<Node *>::iterator it;
-  std::list<Node *> *children;
+  std::list<MemNode *>::iterator it;
+  std::list<MemNode *> *children;
 
   // Get in canonical form.
   if (path.length() == 0)
@@ -185,7 +186,7 @@ Node *MemMount::GetMemNode(std::string path) {
   return node;
 }
 
-Node *MemMount::GetParentMemNode(std::string path) {
+MemNode *MemMount::GetParentMemNode(std::string path) {
   return GetMemNode(path + "/..");
 }
 
@@ -240,7 +241,7 @@ void MemMount::DecrementUseCount(Node2* node) {
 int MemMount::Getdents(Node2* node2, off_t offset,
                        struct dirent *dir, unsigned int count) {
   AcquireLock();
-  Node* node = reinterpret_cast<MemNode2*>(node2)->node();
+  MemNode* node = reinterpret_cast<MemNode2*>(node2)->node();
   // Check that it is a directory.
   if (!(node->is_dir())) {
     errno = ENOTDIR;
@@ -248,7 +249,7 @@ int MemMount::Getdents(Node2* node2, off_t offset,
     return -1;
   }
 
-  std::list<Node*>* children = node->children();
+  std::list<MemNode*>* children = node->children();
   int pos;
   int bytes_read;
 
@@ -256,7 +257,7 @@ int MemMount::Getdents(Node2* node2, off_t offset,
   bytes_read = 0;
   assert(children);
   // Skip to the child at the current offset.
-  std::list<Node *>::iterator children_it;
+  std::list<MemNode *>::iterator children_it;
 
   for (children_it = children->begin();
        children_it != children->end() &&

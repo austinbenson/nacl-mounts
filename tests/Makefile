@@ -75,9 +75,6 @@ gtest_main.a : gtest-all.o gtest_main.o
 AllTest.o: $(COMMON_TEST_DIR)/AllTest.cc $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(COMMON_TEST_DIR)/AllTest.cc
 
-Node.o: $(USER_BASE_DIR)/Node.cc $(USER_BASE_DIR)/Node.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_BASE_DIR)/Node.cc
-
 FileHandle.o: $(USER_BASE_DIR)/FileHandle.cc \
               $(USER_BASE_DIR)/FileHandle.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_BASE_DIR)/FileHandle.cc
@@ -100,7 +97,7 @@ PathHandle.o: $(USER_BASE_DIR)/PathHandle.cc \
                $(USER_BASE_DIR)/PathHandle.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_BASE_DIR)/PathHandle.cc
 
-All_test: AllTest.o MountManager.o KernelProxy.o Node.o PathHandle.o \
+All_test: AllTest.o MountManager.o KernelProxy.o PathHandle.o \
           MemMount.o MemNode.o FileHandle.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
 

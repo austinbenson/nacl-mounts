@@ -36,7 +36,6 @@ class MemNode {
   // Override the sys call methods from mount_node
   int remove();
   int stat(struct stat *buf);
-  int access(int amode);
   int chmod(mode_t mode);
   int utime(struct utimbuf const *times);
   int unlink(void);

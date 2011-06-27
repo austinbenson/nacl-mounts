@@ -217,7 +217,6 @@ TEST(MemNodeTest, UseCount) {
 TEST(MemNodeTest, Stubs) {
   MemMount *mnt = new MemMount();
   MemNode *node1 = CreateMemNode("node1", NULL, mnt);
-  EXPECT_EQ(0, node1->access(0));
   EXPECT_EQ(0, node1->utime(NULL));
   EXPECT_EQ(0, node1->unlink());
 
@@ -240,29 +239,3 @@ TEST(MemNodeTest, ReallocData) {
   delete node1;
 }
 
-TEST(MemNodeTest, Access) {
-  MemMount *mnt = new MemMount();
-  MemNode *node1 = CreateMemNode("node1", NULL, mnt);
-  int amode;
-
-  amode = F_OK;
-  EXPECT_EQ(0, node1->access(amode));
-
-  amode |= R_OK;
-  EXPECT_EQ(0, node1->access(amode));
-
-  amode |= W_OK;
-  EXPECT_EQ(0, node1->access(amode));
-
-  amode |= X_OK;
-  EXPECT_EQ(0, node1->access(amode));
-
-  amode = F_OK | X_OK;
-  EXPECT_EQ(0, node1->access(amode));
-
-  amode = R_OK | W_OK;
-  EXPECT_EQ(0, node1->access(amode));
-
-  delete mnt;
-  delete node1;
-}

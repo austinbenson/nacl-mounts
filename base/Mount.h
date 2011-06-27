@@ -33,7 +33,6 @@ class Mount {
   virtual int chmod(Node2* node, mode_t mode) { return 0; }
   virtual int stat(Node2* node, struct stat *buf) { return 0; }
   virtual int remove(Node2* node) { return 0; }
-  virtual int access(Node2* node, int amode) { return 0; }
   virtual int rmdir(Node2* node) { return 0; }
   virtual void DecrementUseCount(Node2* node) { }
 

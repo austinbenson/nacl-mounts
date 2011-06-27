@@ -374,12 +374,59 @@ int KernelProxy::stat(const std::string& path, struct stat *buf) {
 }
 
 int KernelProxy::access(const std::string& path, int amode) {
-  std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
-  if (!mnode.first) {
+  struct stat *buf = (struct stat *)malloc(sizeof(struct stat));
+  
+  if (path.empty()) {
     errno = ENOENT;
     return -1;
   }
-  return mnode.first->access(mnode.second, amode);
+  PathHandle ph = cwd_;
+  if (path[0] == '/') {
+    ph.SetPath(path);
+  } else {
+    ph.AppendPath(path);
+  }
+
+  std::list<std::string> path_components = ph.path();
+  std::list<std::string>::iterator it;
+  std::list<std::string> incremental_paths;
+
+  // All components of the path are checked for
+  // access permissions.
+  std::string curr_path = "/";
+  incremental_paths.push_back(curr_path);
+
+  // Formulate the path of each component.
+  for (it = path_components.begin(); 
+       it != path_components.end(); ++it) {
+    curr_path += "/";
+    curr_path += *it;
+    incremental_paths.push_back(curr_path);
+  }
+
+  // Loop over each path component and
+  // check access permissions.
+  for (it = incremental_paths.begin(); 
+       it != incremental_paths.end(); ++it) {
+    curr_path = *it;
+    // first call stat on the file
+    if (stat(curr_path, buf) == -1) {
+      return -1;  // stat should take care of errno
+    }
+    mode_t mode = buf->st_mode;
+
+    // We know that the file exists at this point.
+    // Thus, we don't have to check F_OK.
+    if (amode & R_OK && !(mode & R_OK) ||
+        amode & W_OK && !(mode & W_OK) ||
+	amode & X_OK && !(mode & X_OK)) {
+	errno = EACCES;
+	return -1;
+    }
+  }
+  // By now we have checked access permissions for
+  // each component of the path.
+  return 0;
 }
 
 int KernelProxy::mkdir(const std::string& path, mode_t mode) {

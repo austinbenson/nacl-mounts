@@ -53,7 +53,6 @@ class MemMount: public Mount {
   int chmod(Node2* node, mode_t mode);
   int stat(Node2* node, struct stat *buf);
   int remove(Node2* node);
-  int access(Node2* node, int amode);
   int rmdir(Node2* node);
   void DecrementUseCount(Node2* node);
   int Getdents(Node2* node, off_t offset, struct dirent *dirp, unsigned int count);

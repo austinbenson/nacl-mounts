@@ -80,10 +80,6 @@ void MemNode::raw_stat(struct stat *buf) {
   buf->st_blksize = 1024;
 }
 
-int MemNode::access(int amode) {
-  return 0;
-}
-
 int MemNode::chmod(mode_t mode) {
   fprintf(stderr, "chmod is not implemented!\n");
   assert(0);

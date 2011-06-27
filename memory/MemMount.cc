@@ -167,10 +167,6 @@ int MemMount::remove(Node2* node) {
   return ToMemNode(node)->remove();
 }
 
-int MemMount::access(Node2* node, int amode) {
-  return ToMemNode(node)->access(amode);
-}
-
 int MemMount::rmdir(Node2* node) {
   return ToMemNode(node)->rmdir();
 }

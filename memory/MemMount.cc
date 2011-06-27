@@ -205,10 +205,6 @@ size_t MemMount::len(Node2 *node) {
   return ToMemNode(node)->len();
 }
 
-int MemMount::capacity(Node2 *node) {
-  return ToMemNode(node)->capacity();
-}
-
 int MemMount::chmod(Node2 *node, mode_t mode) {
   return ToMemNode(node)->chmod(mode);
 }
@@ -227,10 +223,6 @@ int MemMount::access(Node2* node, int amode) {
 
 int MemMount::rmdir(Node2* node) {
   return ToMemNode(node)->rmdir();
-}
-
-void MemMount::set_len(Node2* node, size_t len) {
-  return ToMemNode(node)->set_len(len);
 }
 
 void MemMount::raw_stat(Node2* node, struct stat *buf) {

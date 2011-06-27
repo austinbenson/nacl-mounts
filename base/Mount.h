@@ -36,13 +36,11 @@ class Mount {
 
   virtual bool is_dir(Node2* node) { return false; }
   virtual size_t len(Node2* node) { return 0; }
-  virtual int capacity(Node2* node) { return 0; }
   virtual int chmod(Node2* node, mode_t mode) { return 0; }
   virtual int stat(Node2* node, struct stat *buf) { return 0; }
   virtual int remove(Node2* node) { return 0; }
   virtual int access(Node2* node, int amode) { return 0; }
   virtual int rmdir(Node2* node) { return 0; }
-  virtual void set_len(Node2* node, size_t len) { }
   virtual void raw_stat(Node2* node, struct stat *buf) {}
   virtual void DecrementUseCount(Node2* node) { }
   virtual std::string name(Node2* node) { return ""; }

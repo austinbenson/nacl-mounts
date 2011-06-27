@@ -50,8 +50,6 @@ class Mount {
   virtual ssize_t Read(Node2* node, off_t offset, void *buf, size_t count) { return -1; }
   virtual ssize_t Write(Node2* node, off_t offset, const void *buf, size_t count) { return -1; }
 
-  virtual void AcquireLock(void) {}
-  virtual void ReleaseLock(void) {}
 };
 
 class Mount2 {

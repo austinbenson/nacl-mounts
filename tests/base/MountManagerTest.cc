@@ -191,4 +191,37 @@ TEST(MountManagerTest, BasicOpen) {
 
   EXPECT_EQ(0, mm->kp()->open("/test.txt", O_CREAT, 0));
   EXPECT_EQ(1, mm->kp()->open("hi.txt", O_CREAT, 0));
+
+  mm->ClearMounts();
+}
+
+TEST(MountManagerTest, access) {
+  MemMount *mnt = new MemMount();
+  EXPECT_EQ(0, mm->AddMount(mnt, "/"));
+  mm->kp()->chdir("/");
+
+  EXPECT_EQ(0, mm->kp()->mkdir("/hello", 0));
+  EXPECT_EQ(0, mm->kp()->mkdir("/hello/world", 0));
+  EXPECT_NE(-1, mm->kp()->open("/hello/world/test.txt", O_CREAT, 0));
+
+  int amode = F_OK;
+  EXPECT_EQ(0, mm->kp()->access("/hello/world/test.txt", amode));
+  EXPECT_EQ(0, mm->kp()->access("/", amode));
+
+  amode |= R_OK;
+  EXPECT_EQ(0, mm->kp()->access("/hello/world/test.txt", amode));
+  EXPECT_EQ(0, mm->kp()->access("/", amode));
+
+  amode |= W_OK;
+  EXPECT_EQ(0, mm->kp()->access("/hello/world/test.txt", amode));
+  EXPECT_EQ(0, mm->kp()->access("/", amode));
+
+  amode |= X_OK;
+  EXPECT_EQ(0, mm->kp()->access("/hello/world/test.txt", amode));
+  EXPECT_EQ(0, mm->kp()->access("/", amode));
+
+  EXPECT_EQ(0, mm->kp()->chdir("/"));
+  EXPECT_EQ(0, mm->kp()->access("/", amode));
+  EXPECT_EQ(0, mm->kp()->access("hello/world/test.txt", amode));
+
 }

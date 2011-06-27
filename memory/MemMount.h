@@ -60,7 +60,6 @@ class MemMount: public Mount {
   int remove(Node2* node);
   int access(Node2* node, int amode);
   int rmdir(Node2* node);
-  void raw_stat(Node2* node, struct stat *buf);
   void DecrementUseCount(Node2* node);
   int Getdents(Node2* node, off_t offset, struct dirent *dirp, unsigned int count);
   std::string name(Node2* node);

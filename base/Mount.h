@@ -41,7 +41,6 @@ class Mount {
   virtual int remove(Node2* node) { return 0; }
   virtual int access(Node2* node, int amode) { return 0; }
   virtual int rmdir(Node2* node) { return 0; }
-  virtual void raw_stat(Node2* node, struct stat *buf) {}
   virtual void DecrementUseCount(Node2* node) { }
   virtual std::string name(Node2* node) { return ""; }
   virtual int Getdents(Node2* node, off_t offset,

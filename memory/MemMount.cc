@@ -225,10 +225,6 @@ int MemMount::rmdir(Node2* node) {
   return ToMemNode(node)->rmdir();
 }
 
-void MemMount::raw_stat(Node2* node, struct stat *buf) {
-  return ToMemNode(node)->raw_stat(buf);
-}
-
 void MemMount::DecrementUseCount(Node2* node) {
   return ToMemNode(node)->DecrementUseCount();
 }

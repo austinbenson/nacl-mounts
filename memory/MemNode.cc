@@ -5,10 +5,10 @@
  */
 
 #include "MemNode.h"
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
-#include <assert.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 MemNode::MemNode() {
   data_ = NULL;

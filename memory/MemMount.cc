@@ -233,10 +233,6 @@ void MemMount::set_len(Node2* node, size_t len) {
   return ToMemNode(node)->set_len(len);
 }
 
-void MemMount::ReallocData(Node2* node, int len) {
-  return ToMemNode(node)->ReallocData(len);
-}
-
 void MemMount::raw_stat(Node2* node, struct stat *buf) {
   return ToMemNode(node)->raw_stat(buf);
 }
@@ -289,6 +285,46 @@ std::string MemMount::name(Node2* node) {
   return ToMemNode(node)->name();
 }
 
-char *MemMount::data(Node2* node) {
-  return ToMemNode(node)->data();
+ssize_t MemMount::Read(Node2* node, off_t offset, void *buf, size_t count) {
+  AcquireLock();
+  MemNode* mnode = ToMemNode(node);
+  // Limit to the end of the file.
+  size_t len = count;
+  if (len > mnode->len() - offset) {
+    len = mnode->len() - offset;
+  }
+
+  // Do the read.
+  memcpy(buf, mnode->data() + offset, len);
+  ReleaseLock();
+  return len;
+}
+
+ssize_t MemMount::Write(Node2* node, off_t offset, const void *buf, size_t count) {
+  AcquireLock();
+  MemNode* mnode = ToMemNode(node);
+
+  size_t len;
+  // Grow the file if needed.
+  if (offset + static_cast<off_t>(count) > mnode->capacity()) {
+    len = offset + count;
+    size_t next = (mnode->capacity() + 1) * 2;
+    if (next > len) {
+      len = next;
+    }
+    mnode->ReallocData(len);
+  }
+  // Pad any gap with zeros.
+  if (offset > static_cast<off_t>(mnode->len())) {
+    memset(mnode->data()+len, 0, offset);
+  }
+
+  // Write out the block.
+  memcpy(mnode->data() + offset, buf, count);
+  offset += count;
+  if (offset > static_cast<off_t>(mnode->len())) {
+    mnode->set_len(offset);
+  }
+  ReleaseLock();
+  return count;
 }

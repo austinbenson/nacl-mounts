@@ -13,11 +13,11 @@
 FileHandle *CreateFileHandle(MemMount *mount, Node2 *node,
                                    int used, int offset, int flags) {
   FileHandle *mfh = new FileHandle();
-  mfh->set_mount(mount);
-  mfh->set_node(node);
+  mfh->mount = mount;
+  mfh->node = node;
   mfh->set_used(used);
-  mfh->set_offset(offset);
-  mfh->set_flags(flags);
+  mfh->offset = offset;
+  mfh->flags = flags;
   return mfh;
 }
 

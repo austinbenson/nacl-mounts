@@ -27,45 +27,27 @@ class Mount;
 // class contains a corresponding node for the file handle.
 class FileHandle {
  public:
+  Mount *mount;
+  Node2 *node;
+  off_t offset;
+  int flags;
+
   FileHandle();
   virtual ~FileHandle();
 
-  // override FileHandle system calls
-  off_t lseek(off_t offset, int whence);
-  ssize_t read(void *buf, size_t nbyte);
-  ssize_t write(const void *buf, size_t nbyte);
   int fstat(struct stat *buf);
   int close(void);
-
-  // set_node() sets the pointer to the mem_node
-  // associated with the file handle
-  virtual void set_node(Node2 *node) { node_ = node; }
-
-  virtual Node2 *node(void) { return node_; }
-
-  // set_flags() sets the flags of this file handle
-  void set_flags(int flags) { flags_ = flags; }
 
   // set_used() sets the used indicator for this
   // file handle
   void set_used(int used) { used_ = used; }
 
-  // set_offset() sets the offset for this
-  // file handle
-  void set_offset(int offset) { offset_ = offset; }
-
-  void set_mount(Mount *mount) { mount_ = mount; }
-  Mount* mount() { return mount_; }
-
   void set_in_use(bool in_use) { in_use_ = in_use; }
   bool in_use(void) { return in_use_; }
 
  private:
-  Mount *mount_;
-  Node2 *node_;
+
   int used_;
-  off_t offset_;
-  int flags_;
   bool in_use_;
 };
 

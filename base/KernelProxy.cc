@@ -130,15 +130,15 @@ FileHandle* KernelProxy::OpenHandle(Mount* mount, const std::string& path,
   }
   // Setup file handle.
   FileHandle* handle = new FileHandle();
-  handle->set_mount(mount);
-  handle->set_node(node);
-  handle->set_flags(oflag);
+  handle->mount = mount;
+  handle->node = node;
+  handle->flags = oflag;
   handle->set_used(1);
 
   if (oflag & O_APPEND) {
-    handle->set_offset(mount->len(node));
+    handle->offset = mount->len(node);
   } else {
-    handle->set_offset(0);
+    handle->offset = 0;
   }
 
   return handle;
@@ -216,33 +216,50 @@ int KernelProxy::close(int fd) {
   return handle->close();
 }
 
-ssize_t KernelProxy::read(int fd, void *buf, size_t nbyte) {
+ssize_t KernelProxy::read(int fd, void *buf, size_t count) {
   FileHandle *handle;
 
-  AcquireLock();
   // check if fd is valid and handle exists
   if (!(handle = GetFileHandle(fd))) {
     errno = EBADF;
-    ReleaseLock();
     return -1;
   }
-  int ret = handle->read(buf, nbyte);
-  ReleaseLock();
-  return ret;
+  // Check that this file handle can be read from.
+  if ((handle->flags & O_ACCMODE) == O_WRONLY ||
+      handle->mount->is_dir(handle->node)) {
+    errno = EBADF;
+    return -1;
+  }
+
+  ssize_t n = handle->mount->Read(handle->node, handle->offset, buf, count);
+  if (n > 0) {
+    handle->offset += n;
+  }
+  return n;
 }
 
-ssize_t KernelProxy::write(int fd, const void *buf, size_t nbyte) {
+ssize_t KernelProxy::write(int fd, const void *buf, size_t count) {
   FileHandle *handle;
 
-  AcquireLock();
+  // TODO(krasin): fix locking here.
+
   // check if fd is valid and handle exists
   if (!(handle = GetFileHandle(fd))) {
-    ReleaseLock();
     errno = EBADF;
     return -1;
   }
-  ReleaseLock();
-  return handle->write(buf, nbyte);
+  // Check that this file handle can be written to.
+  if ((handle->flags & O_ACCMODE) == O_RDONLY ||
+      handle->mount->is_dir(handle->node)) {
+    errno = EBADF;
+    return -1;
+  }
+
+  ssize_t n = handle->mount->Write(handle->node, handle->offset, buf, count);
+  if (n > 0) {
+    handle->offset += n;
+  }
+  return n;
 }
 
 int KernelProxy::fstat(int fd, struct stat *buf) {
@@ -266,35 +283,57 @@ int KernelProxy::ioctl(int fd, unsigned long request) {
 
 int KernelProxy::getdents(int fd, void *buf, unsigned int count) {
   FileHandle *handle;
-  Mount* mount;
-  Node2 *node;
 
-  AcquireLock();
   // check if fd is valid and handle exists
   if (!(handle = GetFileHandle(fd))) {
-    ReleaseLock();
     errno = EBADF;
     return -1;
   }
-  mount = handle->mount();
-  node = handle->node();
-  ReleaseLock();
+
   // TODO(Krasin): support offset for getdents
-  return mount->Getdents(node, 0, (struct dirent*)buf, count);
+  return handle->mount->Getdents(handle->node, 0, (struct dirent*)buf, count);
 }
 
 off_t KernelProxy::lseek(int fd, off_t offset, int whence) {
   FileHandle *handle;
 
-  AcquireLock();
   // check if fd is valid and handle exists
   if (!(handle = GetFileHandle(fd))) {
-    ReleaseLock();
     errno = EBADF;
     return -1;
   }
-  ReleaseLock();
-  return handle->lseek(offset, whence);
+  off_t next;
+
+  // Check that it isn't a directory.
+  if (handle->mount->is_dir(handle->node)) {
+    errno = EBADF;
+    return -1;
+  }
+  switch (whence) {
+  case SEEK_SET:
+    next = offset;
+    break;
+  case SEEK_CUR:
+    next = handle->offset + offset;
+    // TODO(arbenson): handle EOVERFLOW if too big.
+    break;
+  case SEEK_END:
+    // TODO(krasin): FileHandle should store file len.
+    next = handle->mount->len(handle->node) - offset;
+    // TODO(arbenson): handle EOVERFLOW if too big.
+    break;
+  default:
+    errno = EINVAL;
+    return -1;
+  }
+  // Must not seek beyond the front of the file.
+  if (next < 0) {
+    errno = EINVAL;
+    return -1;
+  }
+  // Go to the new offset.
+  handle->offset = next;
+  return handle->offset;
 }
 
 int KernelProxy::chmod(const std::string& path, mode_t mode) {

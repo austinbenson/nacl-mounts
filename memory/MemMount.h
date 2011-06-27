@@ -62,12 +62,13 @@ class MemMount: public Mount {
   int access(Node2* node, int amode);
   int rmdir(Node2* node);
   void set_len(Node2* node, size_t len);
-  void ReallocData(Node2* node, int len);
   void raw_stat(Node2* node, struct stat *buf);
   void DecrementUseCount(Node2* node);
   int Getdents(Node2* node, off_t offset, struct dirent *dirp, unsigned int count);
   std::string name(Node2* node);
-  char *data(Node2* node);
+
+  virtual ssize_t Read(Node2* node, off_t offset, void *buf, size_t count);
+  virtual ssize_t Write(Node2* node, off_t offset, const void *buf, size_t count);
 
   MemNode *root() { return root_; }
 

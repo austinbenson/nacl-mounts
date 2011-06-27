@@ -43,13 +43,14 @@ class Mount {
   virtual int access(Node2* node, int amode) { return 0; }
   virtual int rmdir(Node2* node) { return 0; }
   virtual void set_len(Node2* node, size_t len) { }
-  virtual void ReallocData(Node2* node, int len) {}
   virtual void raw_stat(Node2* node, struct stat *buf) {}
   virtual void DecrementUseCount(Node2* node) { }
   virtual std::string name(Node2* node) { return ""; }
-  virtual char *data(Node2* node) { return 0; }
   virtual int Getdents(Node2* node, off_t offset,
                        struct dirent *dirp, unsigned int count) { return -1; }
+
+  virtual ssize_t Read(Node2* node, off_t offset, void *buf, size_t count) { return -1; }
+  virtual ssize_t Write(Node2* node, off_t offset, const void *buf, size_t count) { return -1; }
 
   virtual void AcquireLock(void) {}
   virtual void ReleaseLock(void) {}

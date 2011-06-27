@@ -6,43 +6,18 @@
 #ifndef PACKAGES_SCRIPTS_FILESYS_BASE_FILEHANDLE_H_
 #define PACKAGES_SCRIPTS_FILESYS_BASE_FILEHANDLE_H_
 
-#include <assert.h>
-#include <errno.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <list>
-#include <string>
 
-#include "dirent.h"
-#include "Node2.h"
-
-
+class Node2;
 class Mount;
 
-// FileHandle is the file handle object for the memory
-// mount (MemMount class).  This class overrides all of the
-// MountFileHandle sys call methods.  In addition, this
-// class contains a corresponding node for the file handle.
-class FileHandle {
- public:
+struct FileHandle {
   Mount *mount;
   Node2 *node;
   off_t offset;
   int flags;
   bool in_use;
-
-  FileHandle();
-  virtual ~FileHandle();
-
-  // set_used() sets the used indicator for this
-  // file handle
-  void set_used(int used) { used_ = used; }
-
- private:
-
-  int used_;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_FILEHANDLE_H_

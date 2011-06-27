@@ -132,7 +132,7 @@ FileHandle* KernelProxy::OpenHandle(Mount* mount, const std::string& path,
   handle->mount = mount;
   handle->node = node;
   handle->flags = oflag;
-  handle->set_used(1);
+  handle->in_use = true;
 
   if (oflag & O_APPEND) {
     handle->offset = mount->len(node);

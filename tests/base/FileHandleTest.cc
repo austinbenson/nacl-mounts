@@ -15,7 +15,7 @@ FileHandle *CreateFileHandle(MemMount *mount, Node2 *node,
   FileHandle *mfh = new FileHandle();
   mfh->mount = mount;
   mfh->node = node;
-  mfh->set_used(used);
+  mfh->in_use = true;
   mfh->offset = offset;
   mfh->flags = flags;
   return mfh;

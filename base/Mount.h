@@ -9,7 +9,6 @@
 #include <fcntl.h>
 #include <string>
 #include <sys/stat.h>
-#include "PathHandle.h"
 #include "Node2.h"
 
 // Mount serves as the base mounting class that will be used by

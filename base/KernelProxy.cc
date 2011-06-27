@@ -7,7 +7,6 @@
 #include "MountManager.h"
 
 void KernelProxy::Init(MountManager *mm) {
-  if (pthread_mutex_init(&lock_, NULL)) assert(false);
   max_path_len_ = 256;
   cwd_.set_is_absolute(true);
   cwd_.SetPath("/");
@@ -412,14 +411,6 @@ int KernelProxy::rmdir(const std::string& path) {
     return -1;
   }
   return mnode.first->rmdir(mnode.second);
-}
-
-void KernelProxy::AcquireLock(void) {
-  if (pthread_mutex_lock(&lock_)) assert(0);
-}
-
-void KernelProxy::ReleaseLock(void) {
-  if (pthread_mutex_unlock(&lock_)) assert(0);
 }
 
 FileHandle *KernelProxy::GetFileHandle(int fd) {

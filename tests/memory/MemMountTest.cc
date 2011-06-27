@@ -11,10 +11,8 @@
 
 
 
-TEST(MemMountTest, Locks) {
+TEST(MemMountTest, ConstructDestruct) {
   MemMount *mount = new MemMount();
-  mount->AcquireLock();
-  mount->ReleaseLock();
   delete mount;
 }
 

@@ -81,10 +81,6 @@ class KernelProxy {
   // on success.  On failure, -1 is returned.  Note that file handles
   // are removed when close() is called on a Node
   int RegisterFileHandle(FileHandle *fh);
-
-  void AcquireLock();
-  void ReleaseLock();
-  pthread_mutex_t lock_;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_KERNELPROXY_H_

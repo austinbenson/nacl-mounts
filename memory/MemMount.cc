@@ -10,7 +10,6 @@
 #include <errno.h>
 
 MemMount::MemMount() {
-  pthread_mutex_init(&lock_, NULL);
   root_ = new MemNode();
   root_->set_mount(this);
   root_->set_is_dir(true);
@@ -94,15 +93,6 @@ int MemMount::mkdir(std::string path, mode_t mode) {
   node->AddChild(nnode);
 
   return 0;
-}
-
-
-void MemMount::AcquireLock(void) {
-  if (pthread_mutex_lock(&lock_)) assert(0);
-}
-
-void MemMount::ReleaseLock(void) {
-  if (pthread_mutex_unlock(&lock_)) assert(0);
 }
 
 Node2 *MemMount::GetNode(std::string path) {

@@ -27,7 +27,6 @@ void MountManager::Instantiate() {
 }
 
 void MountManager::Init() {
-  if (pthread_mutex_init(&lock_, NULL)) assert(false);
   // add a memory mount at "/" to function
   // as the deafault mount
   MemMount *default_mount = new MemMount();
@@ -66,14 +65,6 @@ int MountManager::RemoveMount(const char *path) {
 void MountManager::ClearMounts(void) {
   mount_map_.clear();
   cwd_mount_ = NULL;
-}
-
-void MountManager::AcquireLock(void) {
-  if (pthread_mutex_lock(&lock_)) assert(0);
-}
-
-void MountManager::ReleaseLock(void) {
-  if (pthread_mutex_unlock(&lock_)) assert(0);
 }
 
 std::pair<Mount*, Node2*> MountManager::GetNode(std::string path) {

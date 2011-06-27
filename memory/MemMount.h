@@ -63,13 +63,8 @@ class MemMount: public Mount {
 
   MemNode *root() { return root_; }
 
-  // concurrency tools
-  virtual void AcquireLock(void);
-  virtual void ReleaseLock(void);
-
  private:
   PathHandle *path_handle_;
-  pthread_mutex_t lock_;
   MemNode *root_;
 };
 

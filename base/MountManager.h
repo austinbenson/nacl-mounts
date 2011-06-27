@@ -63,21 +63,12 @@ class MountManager {
  private:
   std::map<std::string, Mount*> mount_map_;
   KernelProxy kp_;
-
+  static MountManager *mm_instance_;
   Mount *cwd_mount_;
 
   MountManager();
   static void Instantiate();
-
   void Init(void);
-
-
-  static MountManager *mm_instance_;
-
-  // concurrency tools
-  void AcquireLock();
-  void ReleaseLock();
-  pthread_mutex_t lock_;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_MOUNTMANAGER_H_

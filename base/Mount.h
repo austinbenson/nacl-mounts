@@ -24,10 +24,7 @@ class Mount {
   // node is at path.
   virtual Node2 *GetNode(std::string path) { return NULL; }
 
-  // MountOpen() opens a node at path (representing the open sys call).
-  // MountOpen() is also responsible for node creation when the value
-  // of oflag indicates such.
-  virtual Node2 *MountOpen(std::string path, int oflag, mode_t mode) { return 0; }
+  virtual Node2 *Creat(std::string path, mode_t mode) { return 0; }
 
   // mkdir() creates a directory at path (representing the mkdir
   // sys call).

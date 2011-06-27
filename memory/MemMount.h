@@ -20,10 +20,7 @@ class MemMount: public Mount {
   MemMount();
   ~MemMount();
 
-  // open() opens a new node at path and mimics the
-  // open sys call.  open() covers node creation, so
-  // the method is in MemMount and not Node
-  Node2 *MountOpen(std::string path, int oflag, mode_t mode);
+  Node2 *Creat(std::string path, mode_t mode);
 
   // mkdir() creates a new directory at path
   // and mimics the mkdir sys call.  This mkdir

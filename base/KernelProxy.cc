@@ -122,8 +122,15 @@ int KernelProxy::symlink(const std::string& path1, const std::string& path2) {
 }
 
 FileHandle* KernelProxy::OpenHandle(Mount* mount, const std::string& path,
-                                    int oflag, mode_t mode) {
-  Node2* node = mount->MountOpen(path, oflag, mode);
+                                    int flags, mode_t mode) {
+  Node2* node = mount->GetNode(path);
+  if (node != NULL && (flags & O_CREAT) && (flags & O_EXCL)) {
+    errno = EEXIST;
+    return NULL;
+  }
+  if (node == NULL && (flags & O_CREAT)) {
+    node = mount->Creat(path, mode);
+  }
   if (node == NULL) {
     return NULL;
   }
@@ -131,10 +138,10 @@ FileHandle* KernelProxy::OpenHandle(Mount* mount, const std::string& path,
   FileHandle* handle = new FileHandle();
   handle->mount = mount;
   handle->node = node;
-  handle->flags = oflag;
+  handle->flags = flags;
   handle->in_use = true;
 
-  if (oflag & O_APPEND) {
+  if (flags & O_APPEND) {
     handle->offset = mount->len(node);
   } else {
     handle->offset = 0;

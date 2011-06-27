@@ -27,7 +27,7 @@ MemNode* MemMount::ToMemNode(Node2 *node) {
   return reinterpret_cast<MemNode2*>(node)->node();
 }
 
-Node2 *MemMount::MountOpen(std::string path, int oflag, mode_t mode) {
+Node2 *MemMount::Creat(std::string path, mode_t mode) {
   MemNode *node;
   MemNode *parent;
 
@@ -49,40 +49,19 @@ Node2 *MemMount::MountOpen(std::string path, int oflag, mode_t mode) {
   // See if file exists.
   node = GetMemNode(path);
   if (node) {
-    // Check that it is a file if it does.
-    if (node->is_dir() && oflag != 0) {
-      errno = EISDIR;
-      ReleaseLock();
-      return NULL;
-    }
-    // Check that we weren't expecting to create it.
-    if ((oflag & O_CREAT) && (oflag & O_EXCL)) {
-      errno = EEXIST;
-      ReleaseLock();
-      return NULL;
-    }
-  } else {
-    // Check that we can create it.
-    if (!(oflag & O_CREAT)) {
-      errno = ENOENT;
-      ReleaseLock();
-      return NULL;
-    }
-    // Create it.
-    node = new MemNode();
-    node->set_is_dir(false);
-    node->set_mount(this);
-    std::string p(path);
-    PathHandle ph(p);
-    node->set_name(ph.Last());
-    // Add it to parent.
-    parent->AddChild(node);
-  }
-  // Truncate the file if relevant.
-  if (oflag & O_TRUNC) {
-    node->Truncate();
+    ReleaseLock();
+    errno = EEXIST;
+    return NULL;
   }
 
+  // Create it.
+  node = new MemNode();
+  node->set_is_dir(false);
+  node->set_mount(this);
+  std::string p(path);
+  PathHandle ph(p);
+  node->set_name(ph.Last());
+  parent->AddChild(node);
   node->IncrementUseCount();
 
   ReleaseLock();

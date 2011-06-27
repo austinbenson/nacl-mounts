@@ -32,25 +32,20 @@ Node2 *MemMount::Creat(std::string path, mode_t mode) {
   MemNode *node;
   MemNode *parent;
 
-  AcquireLock();
-
   // Get the directory its in.
   parent = GetParentMemNode(path);
   if (!parent) {
     errno = ENOTDIR;
-    ReleaseLock();
     return NULL;
   }
   // It must be a directory.
   if (!(parent->is_dir())) {
     errno = ENOTDIR;
-    ReleaseLock();
     return NULL;
   }
   // See if file exists.
   node = GetMemNode(path);
   if (node) {
-    ReleaseLock();
     errno = EEXIST;
     return NULL;
   }
@@ -65,7 +60,6 @@ Node2 *MemMount::Creat(std::string path, mode_t mode) {
   parent->AddChild(node);
   node->IncrementUseCount();
 
-  ReleaseLock();
   return new MemNode2(node);
 }
 
@@ -73,26 +67,21 @@ int MemMount::mkdir(std::string path, mode_t mode) {
   MemNode *node;
   MemNode *nnode;
 
-  AcquireLock();
-
   // Make sure it doesn't already exist.
   node = GetMemNode(path);
   if (node) {
     errno = EEXIST;
-    ReleaseLock();
     return -1;
   }
   // Get the parent node.
   node = GetParentMemNode(path);
   if (!node) {
     errno = ENOENT;
-    ReleaseLock();
     return -1;
   }
   // Check that parent is a directory.
   if (!node->is_dir()) {
     errno = ENOTDIR;
-    ReleaseLock();
     return -1;
   }
   // Create a new node
@@ -104,7 +93,6 @@ int MemMount::mkdir(std::string path, mode_t mode) {
   nnode->set_parent(node);
   node->AddChild(nnode);
 
-  ReleaseLock();
   return 0;
 }
 
@@ -203,12 +191,10 @@ void MemMount::DecrementUseCount(Node2* node) {
 
 int MemMount::Getdents(Node2* node2, off_t offset,
                        struct dirent *dir, unsigned int count) {
-  AcquireLock();
   MemNode* node = reinterpret_cast<MemNode2*>(node2)->node();
   // Check that it is a directory.
   if (!(node->is_dir())) {
     errno = ENOTDIR;
-    ReleaseLock();
     return -1;
   }
 
@@ -237,12 +223,10 @@ int MemMount::Getdents(Node2* node2, off_t offset,
     ++pos;
     bytes_read += sizeof(struct dirent);
   }
-  ReleaseLock();
   return bytes_read;
 }
 
 ssize_t MemMount::Read(Node2* node, off_t offset, void *buf, size_t count) {
-  AcquireLock();
   MemNode* mnode = ToMemNode(node);
   // Limit to the end of the file.
   size_t len = count;
@@ -252,12 +236,10 @@ ssize_t MemMount::Read(Node2* node, off_t offset, void *buf, size_t count) {
 
   // Do the read.
   memcpy(buf, mnode->data() + offset, len);
-  ReleaseLock();
   return len;
 }
 
 ssize_t MemMount::Write(Node2* node, off_t offset, const void *buf, size_t count) {
-  AcquireLock();
   MemNode* mnode = ToMemNode(node);
 
   size_t len;
@@ -281,6 +263,5 @@ ssize_t MemMount::Write(Node2* node, off_t offset, const void *buf, size_t count
   if (offset > static_cast<off_t>(mnode->len())) {
     mnode->set_len(offset);
   }
-  ReleaseLock();
   return count;
 }

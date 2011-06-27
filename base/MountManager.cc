@@ -38,42 +38,27 @@ void MountManager::Init() {
 }
 
 int MountManager::AddMount(Mount *m, const char *path) {
-  if (!path)
-    return -3;
+  if (!m) return -2;  // bad mount provided
+  if (!path) return -3;  // bad path provided
   std::string p(path);
-  AcquireLock();
   Mount *mount = mount_map_[path];
-  if (mount) {
-    ReleaseLock();
-    return -1;
-  }
-  if (!m) {
-    ReleaseLock();
-    return -2;
-  }
-  if (p.length() == 0) {
-    ReleaseLock();
-    return -3;
-  }
+  if (mount) return -1;  // mount already exists
+  if (p.length() == 0) return -3;  // bad path
   mount_map_[path] = m;
-  ReleaseLock();
   return 0;
 }
 
 int MountManager::RemoveMount(const char *path) {
-  AcquireLock();
   std::string p(path);
   std::map<std::string, Mount *>::iterator it;
   it = mount_map_.find(p);
   if (it == mount_map_.end()) {
-    ReleaseLock();
     return -1;
   } else {
     if (cwd_mount_ == it->second)
       cwd_mount_ = NULL;
     // erase() calls the destructor
     mount_map_.erase(it);
-    ReleaseLock();
     return 0;
   }
 }

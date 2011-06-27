@@ -55,17 +55,12 @@ int KernelProxy::chdir(const std::string& path) {
   }
 
   // update path
-  AcquireLock();
-
   m_and_p = mm_->GetMount(cwd_.FormulatePath());
-
   if (!(m_and_p.first)) {
-    ReleaseLock();
     return -1;
   }
-
   cwd_ = ph;
-  ReleaseLock();
+
   return 0;
 }
 
@@ -97,14 +92,11 @@ bool KernelProxy::getcwd(std::string *buf, size_t size) {
     errno = EINVAL;
     return false;
   }
-  AcquireLock();
   if (size < cwd_.FormulatePath().length()) {
     errno = ERANGE;
-    ReleaseLock();
     return false;
   }
   *buf = cwd_.FormulatePath();
-  ReleaseLock();
   return true;
 }
 
@@ -113,17 +105,14 @@ bool KernelProxy::getwd(std::string *buf) {
 }
 
 int KernelProxy::link(const std::string& path1, const std::string& path2) {
-  // check if path1 exists (if not, err)
-  // check if path1 is a directory (if, err)
-  // check if path2 exists (if, err)
-  // check if
-  errno = EMLINK;
+  errno = ENOSYS;
   fprintf(stderr, "link has not been implemented!\n");
   assert(0);
   return -1;
 }
 
 int KernelProxy::symlink(const std::string& path1, const std::string& path2) {
+  errno = ENOSYS;
   fprintf(stderr, "symlink has not been implemented!\n");
   assert(0);
   return -1;
@@ -182,18 +171,15 @@ int KernelProxy::open(const std::string& path, int oflag) {
   }
 
   PathHandle ph(p);
-  AcquireLock();
   std::pair<Mount *, std::string> m_and_p =
     mm_->GetMount(ph.FormulatePath());
 
   if (!(m_and_p.first)) {
     errno = ENOENT;
-    ReleaseLock();
     return -1;
   } else {
     handle = OpenHandle(m_and_p.first, m_and_p.second, oflag, 0);
   }
-  ReleaseLock();
   return (!handle) ? -1 : RegisterFileHandle(handle);
 }
 
@@ -209,13 +195,11 @@ int KernelProxy::open(const std::string& path, int oflag, mode_t mode) {
   }
 
   PathHandle ph(p);
-  AcquireLock();
   std::pair<Mount *, std::string> m_and_p =
     mm_->GetMount(ph.FormulatePath());
 
   if (!(m_and_p.first)) {
     errno = ENOENT;
-    ReleaseLock();
     return -1;
   } else {
     if (oflag & O_CREAT) {
@@ -224,7 +208,6 @@ int KernelProxy::open(const std::string& path, int oflag, mode_t mode) {
       handle = OpenHandle(m_and_p.first, m_and_p.second, oflag, 0);
     }
   }
-  ReleaseLock();
   return (!handle) ? -1 : RegisterFileHandle(handle);
 }
 
@@ -365,86 +348,69 @@ off_t KernelProxy::lseek(int fd, off_t offset, int whence) {
 }
 
 int KernelProxy::chmod(const std::string& path, mode_t mode) {
-  AcquireLock();
   std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
   if (!mnode.first) {
     errno = ENOENT;
-    ReleaseLock();
     return -1;
   }
-  ReleaseLock();
   return mnode.first->chmod(mnode.second, mode);
 }
 
 int KernelProxy::remove(const std::string& path) {
-  AcquireLock();
   std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
   if (!mnode.first) {
     errno = ENOENT;
-    ReleaseLock();
     return -1;
   }
-  ReleaseLock();
   return mnode.first->remove(mnode.second);
 }
 
 int KernelProxy::stat(const std::string& path, struct stat *buf) {
-  AcquireLock();
   std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
   if (!mnode.first) {
     errno = ENOENT;
-    ReleaseLock();
     return -1;
   }
-  ReleaseLock();
   return mnode.first->stat(mnode.second, buf);
 }
 
 int KernelProxy::access(const std::string& path, int amode) {
-  AcquireLock();
   std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
   if (!mnode.first) {
     errno = ENOENT;
-    ReleaseLock();
     return -1;
   }
-  ReleaseLock();
   return mnode.first->access(mnode.second, amode);
 }
 
 int KernelProxy::mkdir(const std::string& path, mode_t mode) {
-  AcquireLock();
   std::string p(path);
   if (p.length() == 0)
     return -1;
 
   PathHandle ph = cwd_;
-  if (p[0] == '/')
+  if (p[0] == '/') {
     ph.SetPath(p);
-  else
+  } else {
     ph.AppendPath(p);
+  }
 
   std::pair<Mount *, std::string> m_and_p =
     mm_->GetMount(ph.FormulatePath());
   if (!(m_and_p.first)) {
     errno = ENOTDIR;
-    ReleaseLock();
     return -1;
   } else {
-    ReleaseLock();
     return m_and_p.first->mkdir(m_and_p.second, mode);
   }
 }
 
 int KernelProxy::rmdir(const std::string& path) {
-  AcquireLock();
   std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
   if (!mnode.first) {
     errno = ENOENT;
-    ReleaseLock();
     return -1;
   }
-  ReleaseLock();
   return mnode.first->rmdir(mnode.second);
 }
 

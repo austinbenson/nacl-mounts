@@ -22,18 +22,14 @@ MemNode::~MemNode() {
 }
 
 int MemNode::remove() {
-  mount_->AcquireLock();
-
   // Check that it's a file.
   if (is_dir()) {
     errno = EISDIR;
-    mount_->ReleaseLock();
     return -1;
   }
   // Check that it's not busy.
   if (use_count() > 0) {
     errno = EBUSY;
-    mount_->ReleaseLock();
     return -1;
   }
   // Get the node's parent.
@@ -42,23 +38,19 @@ int MemNode::remove() {
   parent_->RemoveChild(this);
 
   // Free it.
-  mount_->ReleaseLock();
   delete this;
   return 0;
 }
 
 int MemNode::rmdir() {
-  mount_->AcquireLock();
   // Check if it's a directory.
   if (!is_dir()) {
     errno = ENOTDIR;
-    mount_->ReleaseLock();
     return -1;
   }
   // Check if it's empty.
   if (children_.size() > 0) {
     errno = ENOTEMPTY;
-    mount_->ReleaseLock();
     return -1;
   }
   // if this isn't the root node, remove from parent's
@@ -66,15 +58,12 @@ int MemNode::rmdir() {
   if (parent_) {
     parent_->RemoveChild(this);
   }
-  mount_->ReleaseLock();
   delete this;
   return 0;
 }
 
 int MemNode::stat(struct stat *buf) {
-  mount_->AcquireLock();
   raw_stat(buf);
-  mount_->ReleaseLock();
   return 0;
 }
 
@@ -110,14 +99,16 @@ int MemNode::unlink() {
 }
 
 void MemNode::AddChild(MemNode *child) {
-  if (!(is_dir()))
+  if (!is_dir()) {
     return;
+  }
   children_.push_back(child);
 }
 
 void MemNode::RemoveChild(MemNode *child) {
-  if (!(is_dir()))
+  if (!is_dir()) {
     return;
+  }
   children_.remove(child);
 }
 

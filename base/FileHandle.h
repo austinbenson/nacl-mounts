@@ -36,7 +36,6 @@ class FileHandle {
   ssize_t write(const void *buf, size_t nbyte);
   int fstat(struct stat *buf);
   int close(void);
-  int ioctl(unsigned long request, ...);
 
   // set_node() sets the pointer to the mem_node
   // associated with the file handle

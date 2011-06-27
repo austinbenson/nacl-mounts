@@ -126,7 +126,3 @@ int FileHandle::close(void) {
   mount_->ReleaseLock();
   return 0;
 }
-
-int FileHandle::ioctl(unsigned long request, ...) {
-  return -1;
-}

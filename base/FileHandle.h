@@ -35,7 +35,6 @@ class FileHandle {
   ssize_t read(void *buf, size_t nbyte);
   ssize_t write(const void *buf, size_t nbyte);
   int fstat(struct stat *buf);
-  int isatty() { return 0; }
   int close(void);
   int ioctl(unsigned long request, ...);
 

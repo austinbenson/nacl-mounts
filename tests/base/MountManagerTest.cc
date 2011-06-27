@@ -101,7 +101,6 @@ TEST(MountManagerTest, RoutedSysCalls) {
   EXPECT_EQ(-1, mm->kp()->read(fd, NULL, 0));
   EXPECT_EQ(-1, mm->kp()->write(fd, NULL, 0));
   EXPECT_EQ(-1, mm->kp()->fstat(fd, NULL));
-  EXPECT_EQ(-1, mm->kp()->isatty(fd));
   EXPECT_EQ(-1, mm->kp()->getdents(fd, NULL, 0));
   EXPECT_EQ(-1, mm->kp()->lseek(fd, 0, 0));
   EXPECT_EQ(-1, mm->kp()->ioctl(fd, 0));
@@ -193,5 +192,3 @@ TEST(MountManagerTest, BasicOpen) {
   EXPECT_EQ(0, mm->kp()->open("/test.txt", O_CREAT, 0));
   EXPECT_EQ(1, mm->kp()->open("hi.txt", O_CREAT, 0));
 }
-
-

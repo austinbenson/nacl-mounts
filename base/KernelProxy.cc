@@ -259,20 +259,6 @@ int KernelProxy::fstat(int fd, struct stat *buf) {
   return handle->fstat(buf);
 }
 
-int KernelProxy::isatty(int fd) {
-  FileHandle *handle;
-
-  AcquireLock();
-  // check if fd is valid and handle exists
-  if (!(handle = GetFileHandle(fd))) {
-    errno = EBADF;
-    ReleaseLock();
-    return -1;
-  }
-  ReleaseLock();
-  return handle->isatty();
-}
-
 int KernelProxy::ioctl(int fd, unsigned long request) {
   errno = ENOSYS;
   return -1;

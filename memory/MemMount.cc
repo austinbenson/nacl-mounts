@@ -12,6 +12,7 @@
 MemMount::MemMount() {
   pthread_mutex_init(&lock_, NULL);
   root_ = new MemNode();
+  root_->set_mount(this);
   root_->set_is_dir(true);
   root_->set_name("/");
 }
@@ -174,10 +175,6 @@ MemNode *MemMount::GetMemNode(std::string path) {
 
 MemNode *MemMount::GetParentMemNode(std::string path) {
   return GetMemNode(path + "/..");
-}
-
-bool MemMount::is_dir(Node2 *node) {
-  return ToMemNode(node)->is_dir();
 }
 
 int MemMount::chmod(Node2 *node, mode_t mode) {

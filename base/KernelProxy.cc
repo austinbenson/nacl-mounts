@@ -18,6 +18,14 @@ KernelProxy::~KernelProxy() {
   file_handles_.clear();
 }
 
+static bool is_dir(Mount* mount, Node2* node) {
+  struct stat st;
+  if (0 != mount->stat(node, &st)) {
+    return false;
+  }
+  return S_ISDIR(st.st_mode);
+}
+
 int KernelProxy::chdir(const std::string& path) {
   std::pair<Mount *, std::string> m_and_p;
 
@@ -41,7 +49,7 @@ int KernelProxy::chdir(const std::string& path) {
     return -1;
   }
   // check that node is a directory
-  if (!mnode.first->is_dir(mnode.second)) {
+  if (!is_dir(mnode.first, mnode.second)) {
     errno = ENOTDIR;
     return -1;
   }
@@ -243,7 +251,7 @@ ssize_t KernelProxy::read(int fd, void *buf, size_t count) {
   }
   // Check that this file handle can be read from.
   if ((handle->flags & O_ACCMODE) == O_WRONLY ||
-      handle->mount->is_dir(handle->node)) {
+      is_dir(handle->mount, handle->node)) {
     errno = EBADF;
     return -1;
   }
@@ -267,7 +275,7 @@ ssize_t KernelProxy::write(int fd, const void *buf, size_t count) {
   }
   // Check that this file handle can be written to.
   if ((handle->flags & O_ACCMODE) == O_RDONLY ||
-      handle->mount->is_dir(handle->node)) {
+      is_dir(handle->mount, handle->node)) {
     errno = EBADF;
     return -1;
   }
@@ -321,7 +329,7 @@ off_t KernelProxy::lseek(int fd, off_t offset, int whence) {
   ssize_t len;
 
   // Check that it isn't a directory.
-  if (handle->mount->is_dir(handle->node)) {
+  if (is_dir(handle->mount, handle->node)) {
     errno = EBADF;
     return -1;
   }

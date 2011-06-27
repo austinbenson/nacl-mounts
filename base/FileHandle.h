@@ -31,23 +31,18 @@ class FileHandle {
   Node2 *node;
   off_t offset;
   int flags;
+  bool in_use;
 
   FileHandle();
   virtual ~FileHandle();
-
-  int close(void);
 
   // set_used() sets the used indicator for this
   // file handle
   void set_used(int used) { used_ = used; }
 
-  void set_in_use(bool in_use) { in_use_ = in_use; }
-  bool in_use(void) { return in_use_; }
-
  private:
 
   int used_;
-  bool in_use_;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_FILEHANDLE_H_

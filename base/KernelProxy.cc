@@ -62,27 +62,26 @@ int KernelProxy::chdir(const std::string& path) {
 }
 
 int KernelProxy::RegisterFileHandle(FileHandle *fh) {
-  size_t fildes;
+  size_t fd;
 
-  AcquireLock();
   // get first available fd
-  for (fildes = 0; fildes < file_handles_.size(); ++fildes) {
-    if (!(file_handles_[fildes])) {
-      fh->set_in_use(true);
-      file_handles_[fildes] = fh;
-      return fildes;
-    } else if (!(file_handles_[fildes]->in_use())) {
-      delete file_handles_[fildes];
-      fh->set_in_use(true);
-      file_handles_[fildes] = fh;
-      return fildes;
+  for (fd = 0; fd < file_handles_.size(); ++fd) {
+    if (!(file_handles_[fd])) {
+      fh->in_use = true;
+      file_handles_[fd] = fh;
+      return fd;
+    } else if (!(file_handles_[fd]->in_use)) {
+      delete file_handles_[fd];
+      fh->in_use = true;
+      file_handles_[fd] = fh;
+      return fd;
     }
   }
 
   file_handles_.push_back(fh);
-  fh->set_in_use(true);
-  ReleaseLock();
-  return fildes;
+  fh->in_use = true;
+
+  return fd;
 }
 
 bool KernelProxy::getcwd(std::string *buf, size_t size) {
@@ -206,14 +205,13 @@ int KernelProxy::close(int fd) {
   FileHandle *handle;
 
   // check if fd is valid and handle exists
-  AcquireLock();
   if (!(handle = GetFileHandle(fd))) {
     errno = EBADF;
-    ReleaseLock();
     return -1;
   }
-  ReleaseLock();
-  return handle->close();
+  handle->mount->DecrementUseCount(handle->node);
+  handle->in_use = false;
+  return 0;
 }
 
 ssize_t KernelProxy::read(int fd, void *buf, size_t count) {

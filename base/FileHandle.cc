@@ -16,11 +16,3 @@ FileHandle::FileHandle() {
 
 FileHandle::~FileHandle() {
 }
-
-int FileHandle::close(void) {
-  mount->AcquireLock();
-  mount->DecrementUseCount(node);
-  in_use_ = false;
-  mount->ReleaseLock();
-  return 0;
-}

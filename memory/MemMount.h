@@ -51,7 +51,6 @@ class MemMount: public Mount {
 
   // Temp methods for Node -> Node2 -> ino_t transition period.
   bool is_dir(Node2* node);
-  size_t len(Node2* node);
   int chmod(Node2* node, mode_t mode);
   int stat(Node2* node, struct stat *buf);
   int remove(Node2* node);

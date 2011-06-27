@@ -31,7 +31,6 @@ class Mount {
   virtual int mkdir(std::string path, mode_t mode) { return 0; }
 
   virtual bool is_dir(Node2* node) { return false; }
-  virtual size_t len(Node2* node) { return 0; }
   virtual int chmod(Node2* node, mode_t mode) { return 0; }
   virtual int stat(Node2* node, struct stat *buf) { return 0; }
   virtual int remove(Node2* node) { return 0; }

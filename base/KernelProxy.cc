@@ -121,6 +121,14 @@ int KernelProxy::symlink(const std::string& path1, const std::string& path2) {
   return -1;
 }
 
+static ssize_t GetFileLen(Mount* mount, Node2 *node) {
+  struct stat st;
+  if (0 != mount->stat(node, &st)) {
+    return -1;
+  }
+  return (ssize_t) st.st_size;
+}
+
 FileHandle* KernelProxy::OpenHandle(Mount* mount, const std::string& path,
                                     int flags, mode_t mode) {
   Node2* node = mount->GetNode(path);
@@ -142,7 +150,11 @@ FileHandle* KernelProxy::OpenHandle(Mount* mount, const std::string& path,
   handle->in_use = true;
 
   if (flags & O_APPEND) {
-    handle->offset = mount->len(node);
+    ssize_t off = GetFileLen(mount, node);
+    if (off == -1) {
+      return NULL;
+    }
+    handle->offset = (size_t)off;
   } else {
     handle->offset = 0;
   }
@@ -306,6 +318,7 @@ off_t KernelProxy::lseek(int fd, off_t offset, int whence) {
     return -1;
   }
   off_t next;
+  ssize_t len;
 
   // Check that it isn't a directory.
   if (handle->mount->is_dir(handle->node)) {
@@ -322,7 +335,11 @@ off_t KernelProxy::lseek(int fd, off_t offset, int whence) {
     break;
   case SEEK_END:
     // TODO(krasin): FileHandle should store file len.
-    next = handle->mount->len(handle->node) - offset;
+    len = GetFileLen(handle->mount, handle->node);
+    if (len == -1) {
+      return -1;
+    }
+    next = (size_t)len - offset;
     // TODO(arbenson): handle EOVERFLOW if too big.
     break;
   default:

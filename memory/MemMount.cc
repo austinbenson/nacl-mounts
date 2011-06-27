@@ -180,10 +180,6 @@ bool MemMount::is_dir(Node2 *node) {
   return ToMemNode(node)->is_dir();
 }
 
-size_t MemMount::len(Node2 *node) {
-  return ToMemNode(node)->len();
-}
-
 int MemMount::chmod(Node2 *node, mode_t mode) {
   return ToMemNode(node)->chmod(mode);
 }

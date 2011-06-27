@@ -212,3 +212,18 @@ TEST(MemMountTest, DefaultMount) {
     test_close(fds[i]);
   }
 }
+
+TEST(MemMountTest, Stat) {
+  KernelProxy *kp = MountManager::MMInstance()->kp();
+  ASSERT_LE(0, kp->mkdir("/MemMountTest_Stat", 0755));
+  struct stat st;
+  ASSERT_EQ(0, kp->stat("/MemMountTest_Stat", &st));
+  ASSERT_TRUE(S_ISDIR(st.st_mode));
+  ASSERT_FALSE(S_ISREG(st.st_mode));
+  ASSERT_EQ(-1, kp->stat("/MemMountTest_Stat2", &st));
+  int fd = kp->open("/MemMountTest_Stat/file", O_CREAT, 644);
+  ASSERT_LE(0, fd);
+  ASSERT_EQ(0, kp->stat("/MemMountTest_Stat/file", &st));
+  ASSERT_FALSE(S_ISDIR(st.st_mode));
+  ASSERT_TRUE(S_ISREG(st.st_mode));
+}

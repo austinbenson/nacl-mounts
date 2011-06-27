@@ -62,7 +62,6 @@ class MemMount: public Mount {
   int rmdir(Node2* node);
   void DecrementUseCount(Node2* node);
   int Getdents(Node2* node, off_t offset, struct dirent *dirp, unsigned int count);
-  std::string name(Node2* node);
 
   virtual ssize_t Read(Node2* node, off_t offset, void *buf, size_t count);
   virtual ssize_t Write(Node2* node, off_t offset, const void *buf, size_t count);

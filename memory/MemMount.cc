@@ -269,10 +269,6 @@ int MemMount::Getdents(Node2* node2, off_t offset,
   return bytes_read;
 }
 
-std::string MemMount::name(Node2* node) {
-  return ToMemNode(node)->name();
-}
-
 ssize_t MemMount::Read(Node2* node, off_t offset, void *buf, size_t count) {
   AcquireLock();
   MemNode* mnode = ToMemNode(node);

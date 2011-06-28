@@ -10,14 +10,11 @@
 #include <errno.h>
 
 MemMount::MemMount() {
-  root_ = new MemNode();
+  slots_.Alloc();
+  root_ = slots_.At(0);
   root_->set_mount(this);
   root_->set_is_dir(true);
   root_->set_name("/");
-}
-
-MemMount::~MemMount() {
-  delete root_;
 }
 
 MemNode* MemMount::ToMemNode(Node2 *node) {
@@ -28,79 +25,84 @@ MemNode* MemMount::ToMemNode(Node2 *node) {
 }
 
 Node2 *MemMount::Creat(std::string path, mode_t mode) {
-  MemNode *node;
+  MemNode *child;
   MemNode *parent;
 
   // Get the directory its in.
-  parent = GetParentMemNode(path);
-  if (!parent) {
+  int parent_slot = GetParentSlot(path);
+  if (parent_slot == -1) {
     errno = ENOTDIR;
     return NULL;
   }
+  parent = GetParentMemNode(path);
   // It must be a directory.
   if (!(parent->is_dir())) {
     errno = ENOTDIR;
     return NULL;
   }
   // See if file exists.
-  node = GetMemNode(path);
-  if (node) {
+  child = GetMemNode(path);
+  if (child) {
     errno = EEXIST;
     return NULL;
   }
 
   // Create it.
-  node = new MemNode();
-  node->set_is_dir(false);
-  node->set_mount(this);
+  int slot = slots_.Alloc();
+  child = slots_.At(slot);
+  child->set_is_dir(false);
+  child->set_mount(this);
   std::string p(path);
   PathHandle ph(p);
-  node->set_name(ph.Last());
-  parent->AddChild(node);
-  node->IncrementUseCount();
+  child->set_name(ph.Last());
+  child->set_parent(parent_slot);
+  parent->AddChild(slot);
+  child->IncrementUseCount();
 
-  return new MemNode2(node);
+  return new MemNode2(&slots_, slot);
 }
 
 int MemMount::mkdir(std::string path, mode_t mode) {
-  MemNode *node;
-  MemNode *nnode;
+  MemNode* parent;
+  MemNode* child;
 
   // Make sure it doesn't already exist.
-  node = GetMemNode(path);
-  if (node) {
+  child = GetMemNode(path);
+  if (child) {
     errno = EEXIST;
     return -1;
   }
   // Get the parent node.
-  node = GetParentMemNode(path);
-  if (!node) {
+  int parent_slot = GetParentSlot(path);
+  if (parent_slot == -1) {
     errno = ENOENT;
     return -1;
   }
-  // Check that parent is a directory.
-  if (!node->is_dir()) {
+  parent = slots_.At(parent_slot);
+
+  if (!parent->is_dir()) {
     errno = ENOTDIR;
     return -1;
   }
   // Create a new node
-  nnode = new MemNode();
-  nnode->set_mount(this);
-  nnode->set_is_dir(true);
+  int slot = slots_.Alloc();
+  child = slots_.At(slot);
+  child->set_mount(this);
+  child->set_is_dir(true);
   PathHandle ph(path);
-  nnode->set_name(ph.Last());
-  nnode->set_parent(node);
-  node->AddChild(nnode);
+  child->set_name(ph.Last());
+  child->set_parent(parent_slot);
+  parent->AddChild(slot);
 
   return 0;
 }
 
 Node2 *MemMount::GetNode(std::string path) {
-  MemNode* node = GetMemNode(path);
-  if (node == NULL) {
+  int slot = GetSlot(path);
+  if (slot == -1) {
     return NULL;
   }
-  return new MemNode2(node);
+  return new MemNode2(&slots_, slot);
 }
 
 MemNode *MemMount::GetParentNode(std::string path) {
@@ -108,51 +110,66 @@ MemNode *MemMount::GetParentNode(std::string path) {
 }
 
 MemNode *MemMount::GetMemNode(std::string path) {
-  MemNode *node;
+  int slot = GetSlot(path);
+  if (slot == -1) {
+    return NULL;
+  }
+  return slots_.At(GetSlot(path));
+}
+
+int MemMount::GetSlot(std::string path) {
+  int slot;
   std::list<std::string> path_components;
-  std::list<MemNode *>::iterator it;
-  std::list<MemNode *> *children;
+  std::list<int>::iterator it;
+  std::list<int> *children;
 
   // Get in canonical form.
-  if (path.length() == 0)
-    return NULL;
+  if (path.length() == 0) {
+    return -1;
+  }
   // Check if it is an absolute path
   PathHandle ph(path);
   path_components = ph.path();
 
   // Walk up from root.
-  node = root_;
+  slot = 0;
   std::list<std::string>::iterator path_it;
   // loop through path components
   for (path_it = path_components.begin();
        path_it != path_components.end(); ++path_it) {
     // check if we are at a non-directory
-    if (!(node->is_dir())) {
+    if (!(slots_.At(slot)->is_dir())) {
       errno = ENOTDIR;
-      return NULL;
+      return -1;
     }
     // loop through children
-    children = node->children();
+    children = slots_.At(slot)->children();
     for (it = children->begin(); it != children->end(); ++it) {
-      if (((*it)->name()).compare(*path_it) == 0) {
+      if ((slots_.At(*it)->name()).compare(*path_it) == 0) {
         break;
       }
     }
     // check for failure
     if (it == children->end()) {
       errno = ENOENT;
-      return NULL;
+      return -1;
     } else {
-      node = *it;
+      slot = *it;
     }
   }
   // We should now have completed the walk.
-  if (node == root_ && path_components.size() > 1) return NULL;
-  return node;
+  if (slot == 0 && path_components.size() > 1) {
+    return -1;
+  }
+  return slot;
 }
 
 MemNode *MemMount::GetParentMemNode(std::string path) {
   return GetMemNode(path + "/..");
+}
+
+int MemMount::GetParentSlot(std::string path) {
+  return GetSlot(path + "/..");
 }
 
 int MemMount::chmod(Node2 *node, mode_t mode) {
@@ -163,12 +180,58 @@ int MemMount::stat(Node2* node, struct stat *buf) {
   return ToMemNode(node)->stat(buf);
 }
 
-int MemMount::remove(Node2* node) {
-  return ToMemNode(node)->remove();
+int MemMount::remove(Node2* node2) {
+  int slot = reinterpret_cast<MemNode2*>(node2)->slot();
+  if (slot == 0) {
+    // Can't delete root.
+    errno = EBUSY;
+    return -1;
+  }
+  MemNode* node = slots_.At(slot);
+  if (node == NULL) {
+    errno = ENOENT;
+    return -1;
+  }
+  // Check that it's a file.
+  if (node->is_dir()) {
+    errno = EISDIR;
+    return -1;
+  }
+  // Check that it's not busy.
+  if (node->use_count() > 0) {
+    errno = EBUSY;
+    return -1;
+  }
+  // Get the node's parent.
+  slots_.At(node->parent())->RemoveChild(slot);
+  slots_.Free(slot);
+
+  return 0;
 }
 
-int MemMount::rmdir(Node2* node) {
-  return ToMemNode(node)->rmdir();
+int MemMount::rmdir(Node2* node2) {
+  int slot = reinterpret_cast<MemNode2*>(node2)->slot();
+  MemNode* node = slots_.At(slot);
+  if (node == NULL) {
+    return ENOENT;
+  }
+  // Check if it's a directory.
+  if (!node->is_dir()) {
+    errno = ENOTDIR;
+    return -1;
+  }
+  // Check if it's empty.
+  if (node->children()->size() > 0) {
+    errno = ENOTEMPTY;
+    return -1;
+  }
+  // if this isn't the root node, remove from parent's
+  // children list
+  if (slot != 0) {
+    slots_.At(node->parent())->RemoveChild(slot);
+  }
+  slots_.Free(slot);
+  return 0;
 }
 
 void MemMount::DecrementUseCount(Node2* node) {
@@ -184,7 +247,7 @@ int MemMount::Getdents(Node2* node2, off_t offset,
     return -1;
   }
 
-  std::list<MemNode*>* children = node->children();
+  std::list<int>* children = node->children();
   int pos;
   int bytes_read;
 
@@ -192,7 +255,7 @@ int MemMount::Getdents(Node2* node2, off_t offset,
   bytes_read = 0;
   assert(children);
   // Skip to the child at the current offset.
-  std::list<MemNode *>::iterator children_it;
+  std::list<int>::iterator children_it;
 
   for (children_it = children->begin();
        children_it != children->end() &&
@@ -204,7 +267,7 @@ int MemMount::Getdents(Node2* node2, off_t offset,
     dir->d_ino = 0x60061E;
     dir->d_off = sizeof(struct dirent);
     dir->d_reclen = sizeof(struct dirent);
-    strncpy(dir->d_name, (*children_it)->name().c_str(), sizeof(dir->d_name));
+    strncpy(dir->d_name, slots_.At(*children_it)->name().c_str(), sizeof(dir->d_name));
     ++dir;
     ++pos;
     bytes_read += sizeof(struct dirent);

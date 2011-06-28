@@ -10,15 +10,15 @@
 #include <string>
 #include "../base/Mount.h"
 #include "../base/PathHandle.h"
-
-class MemNode;
+#include "../base/SlotAllocator.h"
+#include "MemNode.h"
 
 // mem_mount is a storage mount representing local memory.  The node
 // class is MemNode.
 class MemMount: public Mount {
  public:
   MemMount();
-  ~MemMount();
+  virtual ~MemMount() {}
 
   Node2 *Creat(std::string path, mode_t mode);
 
@@ -41,6 +41,7 @@ class MemMount: public Mount {
   // GetMemNode() is like GetNode(), but the method
   // is used internally to the memory mount structure.
   MemNode *GetMemNode(std::string path);
+  int GetSlot(std::string path);
 
   MemNode *ToMemNode(Node2* node);
 
@@ -48,6 +49,7 @@ class MemMount: public Mount {
   // the method is used internally to the memory mount
   // structure.
   MemNode *GetParentMemNode(std::string path);
+  int GetParentSlot(std::string path);
 
   // Temp methods for Node -> Node2 -> ino_t transition period.
   int chmod(Node2* node, mode_t mode);
@@ -65,6 +67,7 @@ class MemMount: public Mount {
  private:
   PathHandle *path_handle_;
   MemNode *root_;
+  SlotAllocator<MemNode> slots_;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_MEMORY_MEMMOUNT_H_

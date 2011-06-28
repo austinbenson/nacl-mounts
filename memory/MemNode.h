@@ -10,10 +10,12 @@
 #include <sys/stat.h>
 #include <list>
 #include <string>
-#include "MemMount.h"
+
+#include "../base/Node2.h"
+#include "../base/SlotAllocator.h"
+
 
 class MemMount;
-class MemNode;
 
 // A macro to disallow the evil copy constructor and operator= functions
 // This should be used in the private: declarations for a class
@@ -44,11 +46,11 @@ class MemNode {
   // Add child to this node's children.  This method will do nothing
   // if this node is a directory or if child points to a child that is
   // not in the children list of this node
-  virtual void AddChild(MemNode *child);
+  virtual void AddChild(int slot);
 
   // Remove child from this node's children.  This method will do
   // nothing if the node is not a directory
-  virtual void RemoveChild(MemNode *child);
+  virtual void RemoveChild(int slot);
 
   // Reallocate the size of data to be len bytes.  Copies the
   // current data to the reallocated memory.
@@ -58,7 +60,7 @@ class MemNode {
   // which represent the children of this node.
   // If this node is a file or a directory with no children,
   // a NULL pointer is returned.
-  virtual std::list<MemNode *> *children(void);
+  virtual std::list<int> *children(void);
 
   // set_name() sets the name of this node.  This is not the
   // path but rather the name of the file or directory
@@ -69,12 +71,12 @@ class MemNode {
 
   // set_parent() sets the parent node of this node to
   // parent_
-  virtual void set_parent(MemNode *parent) { parent_ = parent; }
+  virtual void set_parent(int parent) { parent_ = parent; }
 
   // parent() returns a pointer to the parent node of
   // this node.  If this node is the root node, NULL
   // is returned.
-  virtual MemNode *parent(void) { return parent_; }
+  virtual int parent(void) { return parent_; }
 
   // increase the use count by one
   virtual void IncrementUseCount(void) { ++use_count_; }
@@ -114,29 +116,30 @@ class MemNode {
 
  private:
   std::string name_;
-  MemNode *parent_;
+  int parent_;
   MemMount *mount_;
   char *data_;
   size_t len_;
   size_t capacity_;
   int use_count_;
   bool is_dir_;
-  std::list<MemNode *> children_;
+  std::list<int> children_;
 };
 
 class MemNode2 : public Node2 {
  public:
-  explicit MemNode2(MemNode* node) : node_(node) {
+  explicit MemNode2(SlotAllocator<MemNode>* slots, int slot) : slots_(slots), slot_(slot) {
   }
 
   virtual ~MemNode2() {
-    delete node_;
   }
 
-  MemNode* node() { return node_; }
+  MemNode* node() { return slots_->At(slot_); }
+  int slot() { return slot_; }
 
  private:
-  MemNode* node_;
+  SlotAllocator<MemNode>* slots_;
+  int slot_;
 
   DISALLOW_COPY_AND_ASSIGN(MemNode2);
 };

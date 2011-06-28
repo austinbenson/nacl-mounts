@@ -21,47 +21,6 @@ MemNode::~MemNode() {
   children_.clear();
 }
 
-int MemNode::remove() {
-  // Check that it's a file.
-  if (is_dir()) {
-    errno = EISDIR;
-    return -1;
-  }
-  // Check that it's not busy.
-  if (use_count() > 0) {
-    errno = EBUSY;
-    return -1;
-  }
-  // Get the node's parent.
-  assert(parent_);
-  // Drop it from parent.
-  parent_->RemoveChild(this);
-
-  // Free it.
-  delete this;
-  return 0;
-}
-
-int MemNode::rmdir() {
-  // Check if it's a directory.
-  if (!is_dir()) {
-    errno = ENOTDIR;
-    return -1;
-  }
-  // Check if it's empty.
-  if (children_.size() > 0) {
-    errno = ENOTEMPTY;
-    return -1;
-  }
-  // if this isn't the root node, remove from parent's
-  // children list
-  if (parent_) {
-    parent_->RemoveChild(this);
-  }
-  delete this;
-  return 0;
-}
-
 int MemNode::stat(struct stat *buf) {
   raw_stat(buf);
   return 0;
@@ -94,14 +53,14 @@ int MemNode::unlink() {
   return 0;
 }
 
-void MemNode::AddChild(MemNode *child) {
+void MemNode::AddChild(int child) {
   if (!is_dir()) {
     return;
   }
   children_.push_back(child);
 }
 
-void MemNode::RemoveChild(MemNode *child) {
+void MemNode::RemoveChild(int child) {
   if (!is_dir()) {
     return;
   }
@@ -116,7 +75,7 @@ void MemNode::ReallocData(int len) {
   assert(data_);
 }
 
-std::list<MemNode *> *MemNode::children() {
+std::list<int> *MemNode::children() {
   if (is_dir()) {
     return &children_;
   } else {

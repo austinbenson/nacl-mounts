@@ -45,7 +45,12 @@ class SlotAllocator {
     heap_.push_back(slot);
     std::push_heap(heap_.begin(), heap_.end(), desc);
   }
-  T* At(int slot) { return slots_[slot]; }
+  T* At(int slot) {
+    if (slot < 0 || uint(slot) >= slots_.size()) {
+      return NULL;
+    }
+    return slots_[slot];
+  }
 
  private:
   std::vector<T*> slots_;

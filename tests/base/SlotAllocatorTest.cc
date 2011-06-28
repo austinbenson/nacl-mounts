@@ -13,7 +13,6 @@ TEST(SlotAllocatorTest, JustAllocs) {
   EXPECT_EQ(1, slots.Alloc());
 }
 
-
 TEST(SlotAllocatorTest, AllocsAndFrees) {
   SlotAllocator<std::string> slots;
   EXPECT_EQ(0, slots.Alloc());
@@ -23,4 +22,13 @@ TEST(SlotAllocatorTest, AllocsAndFrees) {
   EXPECT_EQ(1, slots.Alloc());
   slots.Free(0);
   EXPECT_EQ(0, slots.Alloc());
+}
+
+TEST(SlotAllocatorTest, AtAccess) {
+  SlotAllocator<std::string> slots;
+  EXPECT_EQ((std::string*)NULL, slots.At(0));
+  EXPECT_EQ(0, slots.Alloc());
+  EXPECT_NE((std::string*)NULL, slots.At(0));
+  EXPECT_EQ((std::string*)NULL, slots.At(1));
+  EXPECT_EQ((std::string*)NULL, slots.At(-1));
 }

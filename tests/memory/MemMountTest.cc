@@ -120,9 +120,6 @@ TEST(MemMountTest, GetParentNode) {
 
 TEST(MemMountTest, mkdir) {
   MemMount *mount = new MemMount();
-  MemNode *node1 = CreateMemNode("node1", NULL, mount);
-  MemNode *node2 = CreateMemNode("node2", NULL, mount);
-  Node2 *node23;
   mode_t mode = 0755;
 
   EXPECT_EQ(0, mount->mkdir("/hello/", 0));
@@ -131,7 +128,7 @@ TEST(MemMountTest, mkdir) {
 
   Node2 *node21 = mount->GetNode("/hello/world");
   CHECK(node21);
-  node1 = mount->ToMemNode(node21);
+  MemNode* node1 = mount->ToMemNode(node21);
   CHECK(node1);
   node1->set_is_dir(false);
 
@@ -141,15 +138,12 @@ TEST(MemMountTest, mkdir) {
 
   EXPECT_EQ(0, mount->mkdir("/hello/world/again/", 0));
 
-  node23 = mount->Creat("/hello/world/again/../../world/again/again", mode);
+  Node2* node23 = mount->Creat("/hello/world/again/../../world/again/again", mode);
   CHECK(node23);
 
   MemNode* node3 = mount->ToMemNode(node23);
   CHECK(node3);
 
-  delete node1;
-  delete node2;
-  delete node3;
   delete mount;
 }
 

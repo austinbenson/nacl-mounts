@@ -10,7 +10,7 @@
 #include "../common/common.h"
 #include "TestHelpCommon.h"
 
-
+/*
 TEST(MemNodeTest, AddChildren) {
   MemMount *mnt = new MemMount();
   MemNode *node1 = CreateMemNode("node1", NULL, mnt, true);
@@ -239,3 +239,4 @@ TEST(MemNodeTest, ReallocData) {
   delete node1;
 }
 
+*/

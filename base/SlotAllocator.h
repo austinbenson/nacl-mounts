@@ -7,6 +7,7 @@
 #ifndef PACKAGES_SCRIPTS_FILESYS_BASE_SLOTALLOCATOR_H_
 #define PACKAGES_SCRIPTS_FILESYS_BASE_SLOTALLOCATOR_H_
 
+#include <stdint.h>
 #include <algorithm>
 #include <vector>
 

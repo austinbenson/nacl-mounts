@@ -29,7 +29,6 @@ extern "C" {
   ssize_t __wrap_read(int fd, void *buf, size_t nbyte);
   ssize_t __wrap_write(int fd, const void *buf, size_t nbyte);
   int __wrap_fstat(int fd, struct stat *buf);
-  int __wrap_isatty(int fd);
   int __wrap_getdents(int fd, void *buf, unsigned int count);
   off_t __wrap_lseek(int fd, off_t offset, int whence);
   int __wrap_ioctl(int fd, unsigned long request, ...);

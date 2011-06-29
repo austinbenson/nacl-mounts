@@ -95,10 +95,6 @@ int __wrap_fstat(int fd, struct stat *buf) {
   return mm->kp()->fstat(fd, buf);
 }
 
-int __wrap_isatty(int fd) {
-  return mm->kp()->isatty(fd);
-}
-
 int __wrap_getdents(int fd, void *buf, unsigned int count) {
   return mm->kp()->getdents(fd, buf, count);
 }

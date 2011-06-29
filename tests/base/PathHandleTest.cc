@@ -15,12 +15,12 @@ TEST(PathHandleTest, SmallPathParsingChecks) {
   std::string s5("");
   std::string s6("hello, world!");
   
-  EXPECT_EQ(true, PathHandle::IsDot(s1));
-  EXPECT_EQ(false, PathHandle::IsDot(s2));
-  EXPECT_EQ(true, PathHandle::IsDotDot(s2));
-  EXPECT_EQ(false, PathHandle::IsDotDot(s1));
-  EXPECT_EQ(true, PathHandle::IsSlash(s3));
-  EXPECT_EQ(false, PathHandle::IsSlash(s4));
+  EXPECT_TRUE(PathHandle::IsDot(s1));
+  EXPECT_FALSE(PathHandle::IsDot(".."));
+  EXPECT_TRUE(PathHandle::IsDotDot(s2));
+  EXPECT_FALSE(PathHandle::IsDotDot(s1));
+  EXPECT_TRUE(PathHandle::IsSlash(s3));
+  EXPECT_FALSE(PathHandle::IsSlash(s4));
 
   EXPECT_STREQ(s3.c_str(), PathHandle::AppendSlash(s3).c_str());
   EXPECT_STREQ(s4.c_str(), PathHandle::AppendSlash(s4).c_str());

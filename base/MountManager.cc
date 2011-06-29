@@ -67,15 +67,16 @@ void MountManager::ClearMounts(void) {
   cwd_mount_ = NULL;
 }
 
-std::pair<Mount*, Node2*> MountManager::GetNode(std::string path) {
+std::pair<Mount*, ino_t> MountManager::GetNode(std::string path) {
   std::pair<Mount *, std::string> m_and_p;
-  std::pair<Mount*, Node2*> res;
+  std::pair<Mount*, ino_t> res;
   res.first = NULL;
-  res.second = NULL;
+  res.second = -1;
 
   // check if path is of length zero
-  if (path.length() == 0)
+  if (path.length() == 0) {
     return res;
+  }
 
   // check if the path is an absoulte path
   if (path[0] == '/') {
@@ -88,10 +89,12 @@ std::pair<Mount*, Node2*> MountManager::GetNode(std::string path) {
     if (!m_and_p.first) {
       return res;
     }
-    res.second = m_and_p.first->GetNode(m_and_p.second);
-    if (res.second != NULL) {
-      res.first = m_and_p.first;
+    struct stat st;
+    if (0 != m_and_p.first->GetNode(m_and_p.second, &st)) {
+      return res;
     }
+    res.first = m_and_p.first;
+    res.second = st.st_ino;
     return res;
   }
 }
@@ -103,19 +106,24 @@ std::pair<Mount *, std::string> MountManager::GetMount(std::string path) {
   ret.first = NULL;
   ret.second = path;
 
-  if (path.length() == 0)
+  if (path.length() == 0) {
     return ret;
+  }
 
   // Find the longest path in the map that matches
   // the start of path
   for (it = mount_map_.begin();
-       it != mount_map_.end() && path.length() != 0; ++it)
-    if (path.find(it->first) == 0)
-      if (it->first.length() > curr_best.length())
+       it != mount_map_.end() && path.length() != 0; ++it) {
+    if (path.find(it->first) == 0) {
+      if (it->first.length() > curr_best.length()) {
         curr_best = it->first;
+      }
+    }
+  }
 
-  if (curr_best.length() == 0)
+  if (curr_best.length() == 0) {
     return ret;
+  }
 
   ret.first = mount_map_[curr_best];
   // if the path matches exactly, returned path is empty string

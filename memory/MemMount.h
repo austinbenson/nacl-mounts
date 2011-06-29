@@ -20,18 +20,15 @@ class MemMount: public Mount {
   MemMount();
   virtual ~MemMount() {}
 
-  Node2 *Creat(std::string path, mode_t mode);
+  void Ref(ino_t node);
+  void Unref(ino_t node);
 
-  // mkdir() creates a new directory at path
-  // and mimics the mkdir sys call.  This mkdir
-  // implementation ignores the mode parameter.
-  int mkdir(std::string path, mode_t mode);
+  int Creat(const std::string& path, mode_t mode, struct stat* st);
+  int Mkdir(const std::string& path, mode_t mode, struct stat* st);
+  int GetNode(const std::string& path, struct stat* st);
 
-  // Given a path, GetNode() returns the Node
-  // corresponding to that path.  The MemMounnt class
-  // will return a MemNode (subclass of MountNode).
-  // If a node cannot be found at path, NULL is returned.
-  Node2 *GetNode(std::string path);
+  int Unlink(const std::string& path);
+  int Rmdir(ino_t node);
 
   // Given a path, GetParentNode returns the parent
   // of the Node located at path.  If path is not a valid
@@ -43,7 +40,9 @@ class MemMount: public Mount {
   MemNode *GetMemNode(std::string path);
   int GetSlot(std::string path);
 
-  MemNode *ToMemNode(Node2* node);
+  MemNode *ToMemNode(ino_t node) {
+    return slots_.At(node);
+  }
 
   // GetMemParentNode() is like GetParentNode(), but
   // the method is used internally to the memory mount
@@ -51,16 +50,13 @@ class MemMount: public Mount {
   MemNode *GetParentMemNode(std::string path);
   int GetParentSlot(std::string path);
 
-  // Temp methods for Node -> Node2 -> ino_t transition period.
-  int chmod(Node2* node, mode_t mode);
-  int stat(Node2* node, struct stat *buf);
-  int remove(Node2* node);
-  int rmdir(Node2* node);
-  void DecrementUseCount(Node2* node);
-  int Getdents(Node2* node, off_t offset, struct dirent *dirp, unsigned int count);
+  int Chmod(ino_t node, mode_t mode);
+  int Stat(ino_t node, struct stat *buf);
 
-  virtual ssize_t Read(Node2* node, off_t offset, void *buf, size_t count);
-  virtual ssize_t Write(Node2* node, off_t offset, const void *buf, size_t count);
+  int Getdents(ino_t node, off_t offset, struct dirent *dirp, unsigned int count);
+
+  virtual ssize_t Read(ino_t node, off_t offset, void *buf, size_t count);
+  virtual ssize_t Write(ino_t node, off_t offset, const void *buf, size_t count);
 
   MemNode *root() { return root_; }
 

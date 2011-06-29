@@ -13,13 +13,9 @@ void KernelProxy::Init(MountManager *mm) {
   mm_ = mm;
 }
 
-KernelProxy::~KernelProxy() {
-  file_handles_.clear();
-}
-
-static bool is_dir(Mount* mount, Node2* node) {
+static bool is_dir(Mount* mount, ino_t node) {
   struct stat st;
-  if (0 != mount->stat(node, &st)) {
+  if (0 != mount->Stat(node, &st)) {
     return false;
   }
   return S_ISDIR(st.st_mode);
@@ -40,7 +36,7 @@ int KernelProxy::chdir(const std::string& path) {
     ph.AppendPath(path);
   }
 
-  std::pair<Mount*, Node2*> mnode = mm_->GetNode(ph.FormulatePath());
+  std::pair<Mount*, ino_t> mnode = mm_->GetNode(ph.FormulatePath());
 
   // check if node exists
   if (!mnode.first) {
@@ -61,29 +57,6 @@ int KernelProxy::chdir(const std::string& path) {
   cwd_ = ph;
 
   return 0;
-}
-
-int KernelProxy::RegisterFileHandle(FileHandle *fh) {
-  size_t fd;
-
-  // get first available fd
-  for (fd = 0; fd < file_handles_.size(); ++fd) {
-    if (!(file_handles_[fd])) {
-      fh->in_use = true;
-      file_handles_[fd] = fh;
-      return fd;
-    } else if (!(file_handles_[fd]->in_use)) {
-      delete file_handles_[fd];
-      fh->in_use = true;
-      file_handles_[fd] = fh;
-      return fd;
-    }
-  }
-
-  file_handles_.push_back(fh);
-  fh->in_use = true;
-
-  return fd;
 }
 
 bool KernelProxy::getcwd(std::string *buf, size_t size) {
@@ -117,109 +90,119 @@ int KernelProxy::symlink(const std::string& path1, const std::string& path2) {
   return -1;
 }
 
-static ssize_t GetFileLen(Mount* mount, Node2 *node) {
+static ssize_t GetFileLen(Mount* mount, ino_t node) {
   struct stat st;
-  if (0 != mount->stat(node, &st)) {
+  if (0 != mount->Stat(node, &st)) {
     return -1;
   }
   return (ssize_t) st.st_size;
 }
 
-FileHandle* KernelProxy::OpenHandle(Mount* mount, const std::string& path,
-                                    int flags, mode_t mode) {
-  Node2* node = mount->GetNode(path);
-  if (node != NULL && (flags & O_CREAT) && (flags & O_EXCL)) {
-    errno = EEXIST;
-    return NULL;
+int KernelProxy::OpenHandle(Mount* mount, const std::string& path,
+                            int flags, mode_t mode) {
+  struct stat st;
+  bool ok = false;
+  if (flags && O_CREAT) {
+    if (0 == mount->Creat(path, mode, &st)) {
+      ok = true;
+    } else {
+      if ((errno != EEXIST) ||
+          (flags && O_EXCL)) {
+        return -1;
+      }
+    }
   }
-  if (node == NULL && (flags & O_CREAT)) {
-    node = mount->Creat(path, mode);
+  if (!ok) {
+    if (0 != mount->GetNode(path, &st)) {
+      errno = ENOENT;
+      return -1;
+    }
   }
-  if (node == NULL) {
-    return NULL;
-  }
+  // TODO(krasin): Here is the possibility for data race. Fix it
+  mount->Ref(st.st_ino);
+
   // Setup file handle.
-  FileHandle* handle = new FileHandle();
+  int handle_slot = open_files_.Alloc();
+  int fd = fds_.Alloc();
+  FileDescriptor* file = fds_.At(fd);
+  file->handle = handle_slot;
+  FileHandle* handle = open_files_.At(handle_slot);
   handle->mount = mount;
-  handle->node = node;
+  // TODO(krasin): store stat, not just inode.
+  handle->node = st.st_ino;
   handle->flags = flags;
-  handle->in_use = true;
+  handle->use_count = 1;
 
   if (flags & O_APPEND) {
-    ssize_t off = GetFileLen(mount, node);
-    if (off == -1) {
-      return NULL;
-    }
-    handle->offset = (size_t)off;
+    handle->offset = st.st_size;
   } else {
     handle->offset = 0;
   }
 
-  return handle;
+  return fd;
 }
 
-int KernelProxy::open(const std::string& path, int oflag) {
-  FileHandle *handle;
-  std::string p = path;
-  if (p == "") {
+int KernelProxy::open(const std::string& path, int flags, mode_t mode) {
+  PathHandle ph(path);
+  // NOTE(krasin): side effect inside FormulatePath: it puts the path into the canonical form.
+  ph.FormulatePath();
+  if (ph.FormulatePath() == "") {
+    // NOTE(krasin): I'm not sure it's correct. Probably, it should open current dir
+    errno = EINVAL;
     return -1;
   }
-
-  if (p[0] != '/') {
-    p = cwd_.FormulatePath() + "/" + p;
+  // NOTE(krasin): side effect inside FormulatePath: it puts the path into the canonical form.
+  if (ph.FormulatePath()[0] != '/') {
+  // NOTE(krasin): side effect inside FormulatePath: it puts the path into the canonical form.
+    ph = PathHandle(cwd_.FormulatePath() + "/" + ph.FormulatePath());
+  // NOTE(krasin): side effect inside FormulatePath: it puts the path into the canonical form.
+    ph.FormulatePath();
   }
 
-  PathHandle ph(p);
+  std::string filename = ph.Last();
+  // NOTE(krasin): side effect inside FormulatePath: it puts the path into the canonical form.
+  PathHandle parent(ph.FormulatePath() + "/..");
+  // NOTE(krasin): side effect inside FormulatePath: it puts the path into the canonical form.
+  parent.FormulatePath();
+
+  // NOTE(krasin): side effect inside FormulatePath: it puts the path into the canonical form.
   std::pair<Mount *, std::string> m_and_p =
-    mm_->GetMount(ph.FormulatePath());
+    mm_->GetMount(parent.FormulatePath());
 
   if (!(m_and_p.first)) {
     errno = ENOENT;
     return -1;
-  } else {
-    handle = OpenHandle(m_and_p.first, m_and_p.second, oflag, 0);
-  }
-  return (!handle) ? -1 : RegisterFileHandle(handle);
-}
-
-int KernelProxy::open(const std::string& path, int oflag, mode_t mode) {
-  FileHandle *handle;
-  std::string p = path;
-  if (p == "") {
-    return -1;
   }
 
-  if (p[0] != '/') {
-    p = cwd_.FormulatePath() + "/" + p;
-  }
+  PathHandle mount_rel_path(m_and_p.second + "/" + filename);
+  // NOTE(krasin): side effect inside FormulatePath: it puts the path into the canonical form.
+  mount_rel_path.FormulatePath();
 
-  PathHandle ph(p);
-  std::pair<Mount *, std::string> m_and_p =
-    mm_->GetMount(ph.FormulatePath());
-
-  if (!(m_and_p.first)) {
-    errno = ENOENT;
-    return -1;
-  } else {
-    if (oflag & O_CREAT) {
-      handle = OpenHandle(m_and_p.first, m_and_p.second, oflag, mode);
-    } else {
-      handle = OpenHandle(m_and_p.first, m_and_p.second, oflag, 0);
-    }
-  }
-  return (!handle) ? -1 : RegisterFileHandle(handle);
+  // NOTE(krasin): side effect inside FormulatePath: it puts the path into the canonical form.
+  return OpenHandle(m_and_p.first, mount_rel_path.FormulatePath(), flags, mode);
 }
 
 int KernelProxy::close(int fd) {
-  FileHandle *handle;
-
-  // check if fd is valid and handle exists
-  if (!(handle = GetFileHandle(fd))) {
+  FileDescriptor* file = fds_.At(fd);
+  if (file == NULL) {
     errno = EBADF;
     return -1;
   }
-  handle->mount->DecrementUseCount(handle->node);
-  handle->in_use = false;
+  int h = file->handle;
+  fds_.Free(fd);
+  FileHandle *handle = open_files_.At(h);
+  if (handle == NULL) {
+    errno = EBADF;
+    return -1;
+  }
+  handle->use_count--;
+  ino_t node = handle->node;
+  Mount* mount = handle->mount;
+  if (handle->use_count <= 0) {
+    open_files_.Free(h);
+    mount->Unref(node);
+  }
+
   return 0;
 }
 
@@ -278,7 +261,7 @@ int KernelProxy::fstat(int fd, struct stat *buf) {
     return -1;
   }
 
-  return handle->mount->stat(handle->node, buf);
+  return handle->mount->Stat(handle->node, buf);
 }
 
 int KernelProxy::ioctl(int fd, unsigned long request) {
@@ -358,30 +341,43 @@ off_t KernelProxy::lseek(int fd, off_t offset, int whence) {
 }
 
 int KernelProxy::chmod(const std::string& path, mode_t mode) {
-  std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
+  std::pair<Mount*, ino_t> mnode = mm_->GetNode(path);
   if (!mnode.first) {
     errno = ENOENT;
     return -1;
   }
-  return mnode.first->chmod(mnode.second, mode);
+  return mnode.first->Chmod(mnode.second, mode);
 }
 
 int KernelProxy::remove(const std::string& path) {
-  std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
-  if (!mnode.first) {
+  std::pair<Mount*, std::string> mp = mm_->GetMount(path);
+  if (!mp.first) {
     errno = ENOENT;
     return -1;
   }
-  return mnode.first->remove(mnode.second);
+  struct stat st;
+  if (0 != mp.first->GetNode(mp.second, &st)) {
+    errno = ENOENT;
+    return -1;
+  }
+  if (S_ISDIR(st.st_mode)) {
+    return mp.first->Rmdir(st.st_ino);
+  }
+  if (S_ISREG(st.st_mode)) {
+    return mp.first->Unlink(mp.second);
+  }
+  // Only support regular files and directories now.
+  errno = EINVAL;
+  return -1;
 }
 
 int KernelProxy::stat(const std::string& path, struct stat *buf) {
-  std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
+  std::pair<Mount*, ino_t> mnode = mm_->GetNode(path);
   if (!mnode.first) {
     errno = ENOENT;
     return -1;
   }
-  return mnode.first->stat(mnode.second, buf);
+  return mnode.first->Stat(mnode.second, buf);
 }
 
 int KernelProxy::access(const std::string& path, int amode) {
@@ -442,8 +438,9 @@ int KernelProxy::access(const std::string& path, int amode) {
 
 int KernelProxy::mkdir(const std::string& path, mode_t mode) {
   std::string p(path);
-  if (p.length() == 0)
+  if (p.length() == 0) {
     return -1;
+  }
 
   PathHandle ph = cwd_;
   if (p[0] == '/') {
@@ -451,28 +448,28 @@ int KernelProxy::mkdir(const std::string& path, mode_t mode) {
   } else {
     ph.AppendPath(p);
   }
-
   std::pair<Mount *, std::string> m_and_p =
     mm_->GetMount(ph.FormulatePath());
   if (!(m_and_p.first)) {
     errno = ENOTDIR;
     return -1;
-  } else {
-    return m_and_p.first->mkdir(m_and_p.second, mode);
   }
+  return m_and_p.first->Mkdir(m_and_p.second, mode, NULL);
 }
 
 int KernelProxy::rmdir(const std::string& path) {
-  std::pair<Mount*, Node2*> mnode = mm_->GetNode(path);
+  std::pair<Mount*, ino_t> mnode = mm_->GetNode(path);
   if (!mnode.first) {
     errno = ENOENT;
     return -1;
   }
-  return mnode.first->rmdir(mnode.second);
+  return mnode.first->Rmdir(mnode.second);
 }
 
 FileHandle *KernelProxy::GetFileHandle(int fd) {
-  if (fd < 0) return NULL;
-  if (static_cast<size_t>(fd) + 1 > file_handles_.size()) return NULL;
-  return file_handles_[fd];
+  FileDescriptor* file = fds_.At(fd);
+  if (file == NULL) {
+    return NULL;
+  }
+  return open_files_.At(file->handle);
 }

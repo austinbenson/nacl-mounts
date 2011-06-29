@@ -20,13 +20,14 @@
 #include "FileHandle.h"
 #include "Mount.h"
 #include "PathHandle.h"
+#include "SlotAllocator.h"
 
 class MountManager;
 
 class KernelProxy {
 
  public:
-  ~KernelProxy();
+  virtual ~KernelProxy() {}
   void Init(MountManager *mm);
 
   // sys calls handled by mount manager (not mount-specific)
@@ -49,7 +50,6 @@ class KernelProxy {
   int access(const std::string& path, int amode);
   int mkdir(const std::string& path, mode_t mode);
   int rmdir(const std::string& path);
-  int open(const std::string& path, int oflag);
   int open(const std::string& path, int oflag, mode_t mode);
 
   // sys calls that take a file descriptor as an argument
@@ -73,15 +73,11 @@ class KernelProxy {
   int max_path_len_;
   MountManager *mm_;
 
-  std::vector<FileHandle*> file_handles_;
+  SlotAllocator<FileDescriptor> fds_;
+  SlotAllocator<FileHandle> open_files_;
 
   FileHandle *GetFileHandle(int fd);
-  FileHandle* OpenHandle(Mount* mount, const std::string& path, int oflag, mode_t mode);
-  // Add a file to the mount manager's vector of handles.  This method
-  // will assign the file handle's fd and will return that value
-  // on success.  On failure, -1 is returned.  Note that file handles
-  // are removed when close() is called on a Node
-  int RegisterFileHandle(FileHandle *fh);
+  int OpenHandle(Mount* mount, const std::string& path, int oflag, mode_t mode);
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_KERNELPROXY_H_

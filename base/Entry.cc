@@ -5,6 +5,8 @@
  */
 #include "Entry.h"
 
+#include <string>
+
 int __wrap_chdir(const char *path) {
   return mm->kp()->chdir(path);
 }
@@ -19,7 +21,7 @@ int __wrap_symlink(const char *path1, const char *path2) {
 
 static char *to_c(const std::string& b, char *buf) {
   memset(buf, 0, b.length()+1);
-  strncpy(buf, b.c_str(), b.length());  
+  strncpy(buf, b.c_str(), b.length());
   return buf;
 }
 
@@ -38,7 +40,6 @@ char *__wrap_getwd(char *buf) {
   }
   return to_c(b, buf);
 }
-
 
 int __wrap_chmod(const char *path, mode_t mode) {
   return mm->kp()->chmod(path, mode);
@@ -74,7 +75,7 @@ int __wrap_open(const char *path, int oflag, ...) {
     return mm->kp()->open(path, oflag, mode);
   }
 
-  return mm->kp()->open(path, oflag);
+  return mm->kp()->open(path, oflag, 0);
 }
 
 
@@ -107,7 +108,6 @@ off_t __wrap_lseek(int fd, off_t offset, int whence) {
 }
 
 int __wrap_ioctl(int fd, unsigned long request, ...) {
-  // TODO(arbenson): handle varargs
   return mm->kp()->ioctl(fd, request);
 }
 

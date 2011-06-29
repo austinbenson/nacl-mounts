@@ -8,16 +8,21 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
-class Node2;
 class Mount;
+
+struct FileDescriptor {
+  // An index in open_files_ table
+  int handle;
+};
 
 struct FileHandle {
   Mount *mount;
-  Node2 *node;
+  ino_t node;
   off_t offset;
   int flags;
-  bool in_use;
+  int use_count;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_FILEHANDLE_H_

@@ -1,0 +1,9 @@
+# No index yet
+
+indexes:
+
+- kind: File
+  properties:
+  - name: owner
+  - name: filename
+  - name: filename

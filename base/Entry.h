@@ -37,4 +37,3 @@ extern "C" {
 }
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_BASE_ENTRY_H_
-

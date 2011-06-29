@@ -58,7 +58,7 @@ class MountManager {
 
   KernelProxy *kp() { return &kp_; }
 
-  std::pair<Mount*, Node2*> GetNode(std::string path);
+  std::pair<Mount*, ino_t> GetNode(std::string path);
 
  private:
   std::map<std::string, Mount*> mount_map_;

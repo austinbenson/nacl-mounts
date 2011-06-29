@@ -9,7 +9,6 @@
 #include <fcntl.h>
 #include <string>
 #include <sys/stat.h>
-#include "Node2.h"
 
 // Mount serves as the base mounting class that will be used by
 // the mount manager (class MountManager).  The mount manager
@@ -20,54 +19,28 @@ class Mount {
   Mount() {}
   virtual ~Mount() {}
 
-  // GetNode() returns the node at path.  It returns NULL if no
-  // node is at path.
-  virtual Node2 *GetNode(std::string path) { return NULL; }
+  virtual int GetNode(const std::string& path, struct stat *st) { return -1; }
 
-  virtual Node2 *Creat(std::string path, mode_t mode) { return 0; }
+  virtual void Ref(ino_t node) {}
+  virtual void Unref(ino_t node) {}
 
-  // mkdir() creates a directory at path (representing the mkdir
-  // sys call).
-  virtual int mkdir(std::string path, mode_t mode) { return 0; }
+  virtual int Creat(const std::string& path, mode_t mode, struct stat* st) { return -1; }
+  virtual int Mkdir(const std::string& path, mode_t mode, struct stat* st) { return -1; }
 
-  virtual int chmod(Node2* node, mode_t mode) { return 0; }
-  virtual int stat(Node2* node, struct stat *buf) { return 0; }
-  virtual int remove(Node2* node) { return 0; }
-  virtual int rmdir(Node2* node) { return 0; }
-  virtual void DecrementUseCount(Node2* node) { }
+  virtual int Unlink(const std::string& path) { return -1; }
+  virtual int Rmdir(ino_t node) { return -1; }
 
-  virtual int Getdents(Node2* node, off_t offset,
+
+  virtual int Chmod(ino_t node, mode_t mode) { return -1; }
+  virtual int Stat(ino_t node, struct stat *buf) { return -1; }
+
+  virtual int Fsync(ino_t node) { return -1; }
+
+  virtual int Getdents(ino_t node, off_t offset,
                        struct dirent *dirp, unsigned int count) { return -1; }
 
-  virtual ssize_t Read(Node2* node, off_t offset, void *buf, size_t count) { return -1; }
-  virtual ssize_t Write(Node2* node, off_t offset, const void *buf, size_t count) { return -1; }
-
-  virtual int Fsync(Node2* node) { return 0; }
-
-};
-
-class Mount2 {
- public:
-  Mount2() {}
-  virtual ~Mount2() {}
-
-  virtual ino_t GetNode(const std::string& path) = 0;
-
-  virtual void Ref(ino_t inode) = 0;
-  virtual void Unref(ino_t inode) = 0;
-
-  virtual ino_t Creat(ino_t parent, const std::string& name, mode_t mode) = 0;
-  virtual ino_t Mkdir(ino_t parent, const std::string* name, mode_t mode) = 0;
-
-  virtual int Unlink(ino_t inode) = 0;
-  virtual int Rmdir(ino_t inode) = 0;
-
-  virtual int Stat(ino_t inode, struct stat* buf) = 0;
-  virtual int Getdents(ino_t inode, off_t offset, struct dirent *dirp, unsigned int count) = 0;
-
-  virtual ssize_t Read(ino_t inode, off_t offset, void *buf, size_t count) = 0;
-  virtual ssize_t Write(ino_t inode, off_t offset, void *buf, size_t count) = 0;
-  virtual int Sync(ino_t inode) = 0;
+  virtual ssize_t Read(ino_t node, off_t offset, void *buf, size_t count) { return -1; }
+  virtual ssize_t Write(ino_t node, off_t offset, const void *buf, size_t count) { return -1; }
 
 };
 

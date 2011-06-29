@@ -4,29 +4,29 @@
  * found in the LICENSE file.
  */
 
-#include "MemNode.h"
+#include "AppEngineNode.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-MemNode::MemNode() {
+AppEngineNode::AppEngineNode() {
   data_ = NULL;
   len_ = 0;
   capacity_ = 0;
   use_count_ = 0;
 }
 
-MemNode::~MemNode() {
-  children_.clear();
+AppEngineNode::~AppEngineNode() {
 }
 
-int MemNode::stat(struct stat *buf) {
+int AppEngineNode::stat(struct stat *buf) {
+  // TODO(arbenson): change to not use raw_stat
   raw_stat(buf);
   return 0;
 }
 
-void MemNode::raw_stat(struct stat *buf) {
+void AppEngineNode::raw_stat(struct stat *buf) {
   memset(buf, 0, sizeof(struct stat));
   buf->st_ino = (ino_t)slot;
   if (is_dir()) {
@@ -40,47 +40,28 @@ void MemNode::raw_stat(struct stat *buf) {
   buf->st_blksize = 1024;
 }
 
-int MemNode::chmod(mode_t mode) {
+int AppEngineNode::chmod(mode_t mode) {
   errno = ENOSYS;
   return -1;
 }
 
-int MemNode::utime(struct utimbuf const *times) {
+int AppEngineNode::utime(struct utimbuf const *times) {
   errno = ENOSYS;
   return -1;
 }
 
-int MemNode::unlink() {
+int AppEngineNode::unlink() {
   errno = ENOSYS;
   return -1;
 }
 
-void MemNode::AddChild(int child) {
-  if (!is_dir()) {
-    return;
-  }
-  children_.push_back(child);
-}
-
-void MemNode::RemoveChild(int child) {
-  if (!is_dir()) {
-    return;
-  }
-  children_.remove(child);
-}
-
-void MemNode::ReallocData(int len) {
+void AppEngineNode::ReallocData(int len) {
+  fprintf(stderr, "Reallocing data with len=%d\n", len);
   assert(len > 0);
-  // TODO(arbenson): Handle memory overflow more gracefully.
+  fprintf(stderr, "Reallocing...\n");
   data_ = reinterpret_cast<char *>(realloc(data_, len));
+  fprintf(stderr, "Done reallocing\n");
   set_capacity(len);
+  fprintf(stderr, "Reallocing data NULL? %d\n", data_ == NULL);
   assert(data_);
-}
-
-std::list<int> *MemNode::children() {
-  if (is_dir()) {
-    return &children_;
-  } else {
-    return NULL;
-  }
 }

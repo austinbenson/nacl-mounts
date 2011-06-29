@@ -8,23 +8,18 @@
 #include "../base/dirent.h"
 #include <assert.h>
 #include <errno.h>
+#include <stdio.h>
 
 MemMount::MemMount() {
   slots_.Alloc();
   root_ = slots_.At(0);
+  root_->slot = 0;
   root_->set_mount(this);
   root_->set_is_dir(true);
   root_->set_name("/");
 }
 
-MemNode* MemMount::ToMemNode(Node2 *node) {
-  if (node == NULL) {
-    return NULL;
-  }
-  return reinterpret_cast<MemNode2*>(node)->node();
-}
-
-Node2 *MemMount::Creat(std::string path, mode_t mode) {
+int MemMount::Creat(const std::string& path, mode_t mode, struct stat* buf) {
   MemNode *child;
   MemNode *parent;
 
@@ -32,24 +27,29 @@ Node2 *MemMount::Creat(std::string path, mode_t mode) {
   int parent_slot = GetParentSlot(path);
   if (parent_slot == -1) {
     errno = ENOTDIR;
-    return NULL;
+    return -1;
   }
-  parent = GetParentMemNode(path);
+  parent = slots_.At(parent_slot);
+  if (!parent) {
+    errno = EINVAL;
+    return -1;
+  }
   // It must be a directory.
   if (!(parent->is_dir())) {
     errno = ENOTDIR;
-    return NULL;
+    return -1;
   }
   // See if file exists.
   child = GetMemNode(path);
   if (child) {
     errno = EEXIST;
-    return NULL;
+    return -1;
   }
 
   // Create it.
   int slot = slots_.Alloc();
   child = slots_.At(slot);
+  child->slot = slot;
   child->set_is_dir(false);
   child->set_mount(this);
   std::string p(path);
@@ -59,10 +59,13 @@ Node2 *MemMount::Creat(std::string path, mode_t mode) {
   parent->AddChild(slot);
   child->IncrementUseCount();
 
-  return new MemNode2(&slots_, slot);
+  if (!buf) {
+    return 0;
+  }
+  return Stat(slot, buf);
 }
 
-int MemMount::mkdir(std::string path, mode_t mode) {
+int MemMount::Mkdir(const std::string& path, mode_t mode, struct stat* buf) {
   MemNode* parent;
   MemNode* child;
 
@@ -87,22 +90,30 @@ int MemMount::mkdir(std::string path, mode_t mode) {
   // Create a new node
   int slot = slots_.Alloc();
   child = slots_.At(slot);
+  child->slot = slot;
   child->set_mount(this);
   child->set_is_dir(true);
   PathHandle ph(path);
   child->set_name(ph.Last());
   child->set_parent(parent_slot);
   parent->AddChild(slot);
+  if (!buf) {
+    return 0;
+  }
 
-  return 0;
+  return Stat(slot, buf);
 }
 
-Node2 *MemMount::GetNode(std::string path) {
+int MemMount::GetNode(const std::string& path, struct stat* buf) {
   int slot = GetSlot(path);
   if (slot == -1) {
-    return NULL;
+    errno = ENOENT;
+    return -1;
   }
-  return new MemNode2(&slots_, slot);
+  if (!buf) {
+    return 0;
+  }
+  return Stat(slot, buf);
 }
 
 MemNode *MemMount::GetParentNode(std::string path) {
@@ -172,24 +183,34 @@ int MemMount::GetParentSlot(std::string path) {
   return GetSlot(path + "/..");
 }
 
-int MemMount::chmod(Node2 *node, mode_t mode) {
-  return ToMemNode(node)->chmod(mode);
-}
-
-int MemMount::stat(Node2* node, struct stat *buf) {
-  return ToMemNode(node)->stat(buf);
-}
-
-int MemMount::remove(Node2* node2) {
-  int slot = reinterpret_cast<MemNode2*>(node2)->slot();
-  if (slot == 0) {
-    // Can't delete root.
-    errno = EBUSY;
-    return -1;
-  }
+int MemMount::Chmod(ino_t slot, mode_t mode) {
   MemNode* node = slots_.At(slot);
   if (node == NULL) {
     errno = ENOENT;
+    return -1;
+  }
+  return node->chmod(mode);
+}
+
+int MemMount::Stat(ino_t slot, struct stat *buf) {
+  MemNode* node = slots_.At(slot);
+  if (node == NULL) {
+    errno = ENOENT;
+    return -1;
+  }
+  return node->stat(buf);
+}
+
+int MemMount::Unlink(const std::string& path) {
+  MemNode* node = GetMemNode(path);
+  if (node == NULL) {
+    errno = ENOENT;
+    return -1;
+  }
+  MemNode* parent = GetParentMemNode(path);
+  if (parent == NULL) {
+    // Can't delete root
+    errno = EBUSY;
     return -1;
   }
   // Check that it's a file.
@@ -197,20 +218,12 @@ int MemMount::remove(Node2* node2) {
     errno = EISDIR;
     return -1;
   }
-  // Check that it's not busy.
-  if (node->use_count() > 0) {
-    errno = EBUSY;
-    return -1;
-  }
-  // Get the node's parent.
-  slots_.At(node->parent())->RemoveChild(slot);
-  slots_.Free(slot);
-
+  parent->RemoveChild(node->slot);
+  Unref(node->slot);
   return 0;
 }
 
-int MemMount::rmdir(Node2* node2) {
-  int slot = reinterpret_cast<MemNode2*>(node2)->slot();
+int MemMount::Rmdir(ino_t slot) {
   MemNode* node = slots_.At(slot);
   if (node == NULL) {
     return ENOENT;
@@ -234,13 +247,39 @@ int MemMount::rmdir(Node2* node2) {
   return 0;
 }
 
-void MemMount::DecrementUseCount(Node2* node) {
-  return ToMemNode(node)->DecrementUseCount();
+void MemMount::Ref(ino_t slot) {
+  MemNode* node = slots_.At(slot);
+  if (node == NULL) {
+    return;
+  }
+  node->IncrementUseCount();
 }
 
-int MemMount::Getdents(Node2* node2, off_t offset,
+void MemMount::Unref(ino_t slot) {
+  MemNode* node = slots_.At(slot);
+  if (node == NULL) {
+    return;
+  }
+  if (node->is_dir()) {
+    return;
+  }
+  node->DecrementUseCount();
+  if (node->use_count() > 0) {
+    return;
+  }
+  // If Ref/Unref misused by KernelProxy, it's possible
+  // that parent will have a dangling inode to the deleted child
+  // TODO(krasin): remove the possibility to misuse this API.
+  slots_.Free(node->slot);
+}
+
+int MemMount::Getdents(ino_t slot, off_t offset,
                        struct dirent *dir, unsigned int count) {
-  MemNode* node = reinterpret_cast<MemNode2*>(node2)->node();
+  MemNode* node = slots_.At(slot);
+  if (node == NULL) {
+    errno = ENOTDIR;
+    return -1;
+  }
   // Check that it is a directory.
   if (!(node->is_dir())) {
     errno = ENOTDIR;
@@ -275,42 +314,50 @@ int MemMount::Getdents(Node2* node2, off_t offset,
   return bytes_read;
 }
 
-ssize_t MemMount::Read(Node2* node, off_t offset, void *buf, size_t count) {
-  MemNode* mnode = ToMemNode(node);
+ssize_t MemMount::Read(ino_t slot, off_t offset, void *buf, size_t count) {
+  MemNode* node = slots_.At(slot);
+  if (node == NULL) {
+    errno = ENOENT;
+    return -1;
+  }
   // Limit to the end of the file.
   size_t len = count;
-  if (len > mnode->len() - offset) {
-    len = mnode->len() - offset;
+  if (len > node->len() - offset) {
+    len = node->len() - offset;
   }
 
   // Do the read.
-  memcpy(buf, mnode->data() + offset, len);
+  memcpy(buf, node->data() + offset, len);
   return len;
 }
 
-ssize_t MemMount::Write(Node2* node, off_t offset, const void *buf, size_t count) {
-  MemNode* mnode = ToMemNode(node);
+ssize_t MemMount::Write(ino_t slot, off_t offset, const void *buf, size_t count) {
+  MemNode* node = slots_.At(slot);
+  if (node == NULL) {
+    errno = ENOENT;
+    return -1;
+  }
 
   size_t len;
   // Grow the file if needed.
-  if (offset + static_cast<off_t>(count) > mnode->capacity()) {
+  if (offset + static_cast<off_t>(count) > node->capacity()) {
     len = offset + count;
-    size_t next = (mnode->capacity() + 1) * 2;
+    size_t next = (node->capacity() + 1) * 2;
     if (next > len) {
       len = next;
     }
-    mnode->ReallocData(len);
+    node->ReallocData(len);
   }
   // Pad any gap with zeros.
-  if (offset > static_cast<off_t>(mnode->len())) {
-    memset(mnode->data()+len, 0, offset);
+  if (offset > static_cast<off_t>(node->len())) {
+    memset(node->data()+len, 0, offset);
   }
 
   // Write out the block.
-  memcpy(mnode->data() + offset, buf, count);
+  memcpy(node->data() + offset, buf, count);
   offset += count;
-  if (offset > static_cast<off_t>(mnode->len())) {
-    mnode->set_len(offset);
+  if (offset > static_cast<off_t>(node->len())) {
+    node->set_len(offset);
   }
   return count;
 }

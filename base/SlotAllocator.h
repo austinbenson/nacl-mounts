@@ -16,7 +16,7 @@ class SlotAllocator {
   SlotAllocator() {}
 
   virtual ~SlotAllocator() {
-    for (uint i = 0; i < slots_.size(); i++) {
+    for (uint32_t i = 0; i < slots_.size(); i++) {
       if (slots_[i] != NULL) {
         delete slots_[i];
         slots_[i] = NULL;
@@ -46,7 +46,7 @@ class SlotAllocator {
     std::push_heap(heap_.begin(), heap_.end(), desc);
   }
   T* At(int slot) {
-    if (slot < 0 || uint(slot) >= slots_.size()) {
+    if (slot < 0 || static_cast<uint32_t>(slot) >= slots_.size()) {
       return NULL;
     }
     return slots_[slot];

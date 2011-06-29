@@ -93,8 +93,7 @@ TEST(MountManagerTest, RoutedSysCalls) {
   EXPECT_EQ(-1, mm->kp()->access(path, 0));
   EXPECT_EQ(0, mm->kp()->mkdir(path, 0));
   EXPECT_EQ(-1, mm->kp()->rmdir(path));
-  EXPECT_EQ(-1, mm->kp()->open(path, 0));
-  EXPECT_EQ(-1, mm->kp()->open(path, 0, 0));  // open has varargs
+  EXPECT_EQ(-1, mm->kp()->open(path, 0, 0));
 
   EXPECT_EQ(-1, mm->kp()->close(fd));
   EXPECT_EQ(-1, mm->kp()->close(-10));

@@ -12,6 +12,12 @@
   ASSERT_NE((void*)NULL, x); \
 } while(0)
 
+#define CHECK2(x) { \
+  ASSERT_NE(-1, x); \
+} while(0)
+
+
+
 MemNode *CreateMemNode(std::string name, int parent,
                        MemMount *mount, bool is_dir = false) {
   MemNode *node = new MemNode();

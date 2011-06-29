@@ -42,6 +42,8 @@ class Mount {
   virtual ssize_t Read(Node2* node, off_t offset, void *buf, size_t count) { return -1; }
   virtual ssize_t Write(Node2* node, off_t offset, const void *buf, size_t count) { return -1; }
 
+  virtual int Fsync(Node2* node) { return 0; }
+
 };
 
 class Mount2 {

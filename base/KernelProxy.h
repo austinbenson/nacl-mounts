@@ -66,6 +66,7 @@ class KernelProxy {
   int getdents(int fd, void *buf, unsigned int count);
   off_t lseek(int fd, off_t offset, int whence);
   int ioctl(int fd, unsigned long request);
+  int fsync(int fd);
 
  private:
   PathHandle cwd_;

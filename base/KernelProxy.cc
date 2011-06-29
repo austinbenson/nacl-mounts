@@ -299,6 +299,17 @@ int KernelProxy::getdents(int fd, void *buf, unsigned int count) {
   return handle->mount->Getdents(handle->node, 0, (struct dirent*)buf, count);
 }
 
+int KernelProxy::fsync(int fd) {
+  FileHandle *handle;
+
+  if (!(handle = GetFileHandle(fd))) {
+    errno = EBADF;
+    return -1;
+  }
+
+  return handle->mount->Fsync(handle->node);
+}
+
 off_t KernelProxy::lseek(int fd, off_t offset, int whence) {
   FileHandle *handle;
 

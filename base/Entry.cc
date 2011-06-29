@@ -111,3 +111,6 @@ int __wrap_ioctl(int fd, unsigned long request, ...) {
   return mm->kp()->ioctl(fd, request);
 }
 
+int __wrap_fsync(int fd) {
+  return mm->kp()->fsync(fd);
+}

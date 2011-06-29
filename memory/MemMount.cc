@@ -338,9 +338,9 @@ ssize_t MemMount::Write(ino_t slot, off_t offset, const void *buf, size_t count)
     return -1;
   }
 
-  size_t len;
+  size_t len = node->capacity();
   // Grow the file if needed.
-  if (offset + static_cast<off_t>(count) > node->capacity()) {
+  if (offset + static_cast<off_t>(count) > len) {
     len = offset + count;
     size_t next = (node->capacity() + 1) * 2;
     if (next > len) {

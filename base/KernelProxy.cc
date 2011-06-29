@@ -428,9 +428,9 @@ int KernelProxy::access(const std::string& path, int amode) {
 
     // We know that the file exists at this point.
     // Thus, we don't have to check F_OK.
-    if (amode & R_OK && !(mode & R_OK) ||
-        amode & W_OK && !(mode & W_OK) ||
-	amode & X_OK && !(mode & X_OK)) {
+    if (((amode & R_OK) && !(mode & R_OK)) ||
+        ((amode & W_OK) && !(mode & W_OK)) ||
+        ((amode & X_OK) && !(mode & X_OK))) {
 	errno = EACCES;
 	return -1;
     }

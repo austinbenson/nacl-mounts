@@ -21,6 +21,7 @@
 #include <ppapi/cpp/var.h>
 #include <ppapi/c/pp_errors.h>
 #include <stdio.h>
+#include "../base/MainThreadRunner.h"
 
 
 #define BOUNDARY_STRING "--------------4789341488943"
@@ -32,28 +33,26 @@ typedef std::pair< std::string, const std::vector<char>* > KeyValue;
 typedef std::list<KeyValue> KeyValueList;
 
 namespace pp {
-  class AppEnginePost {
+  class AppEnginePost : public MainThreadJob {
   public:
-    AppEnginePost(Instance* instance, sem_t done, int *result)
-      : factory_(this),
-      loader_(instance),
+  AppEnginePost(const std::string& url, const KeyValueList& fields,
+                std::vector<char>* dst) :
+      url_(url),
+      fields_(&fields),
+      dst_(dst),
       did_open_(false),
-      pepper_instance_(instance),
-      request(instance),
-      done_(done) {
+      factory_(this) {
     }
 
-    ~AppEnginePost() { fprintf(stderr, "In Post destructor\n"); }
-
-    void Post(const std::string& url, const KeyValueList& fields);
-
-    const std::vector<char>& get_data(void) const {
-      return data_;
+    ~AppEnginePost() {
+      fprintf(stderr, "In Post destructor\n");
+      delete loader_;
     }
+
+    void Run(MainThreadJobEntry* e);
 
   private:
-    //URLRequestInfo MakeRequest(const std::string& url, const KeyValueList& fields);
-    void MakeRequest(const std::string& url, const KeyValueList& fields);
+    URLRequestInfo MakeRequest(const std::string& url, const KeyValueList& fields);
     void OnOpen(int32_t result);
     void OnRead(int32_t result);
     void ReadMore();
@@ -62,21 +61,20 @@ namespace pp {
     void ProcessBytes(const char* bytes, int32_t length);
 
     pp::CompletionCallbackFactory<AppEnginePost> factory_;
-    pp::URLLoader loader_;
-    std::vector<char> data_;
+    MainThreadJobEntry *job_entry_;
+    pp::URLLoader *loader_;
+    std::string url_;
+    const KeyValueList* fields_;
+    std::vector<char>* dst_;
     char buf_[4096];
     bool did_open_;
-    pp::Instance* pepper_instance_;
-    sem_t done_;
-    int *result_;
-    pp::URLRequestInfo request;
   };
 
 
   class AppEngineUrlRequest {
   public:
-    AppEngineUrlRequest(Instance* instance, const std::string& base_url)
-      : pepper_instance_(instance),
+    AppEngineUrlRequest(MainThreadRunner *runner, const std::string& base_url)
+      : runner_(runner),
       base_url_(base_url) {
     }
       
@@ -89,7 +87,7 @@ namespace pp {
     int Remove(const std::string& path);
 
   private:
-    pp::Instance* pepper_instance_;
+    MainThreadRunner *runner_;
     std::string base_url_;
   };
 }

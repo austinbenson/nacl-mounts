@@ -3,8 +3,8 @@
  * Use of this source code is governed by a BSD-style license that be
  * found in the LICENSE file.
  */
-#ifndef PACKAGES_SCRIPTS_FILESYS_APPENGINE_MEMNODE_H_
-#define PACKAGES_SCRIPTS_FILESYS_APPENGINE_MEMNODE_H_
+#ifndef PACKAGES_SCRIPTS_FILESYS_APPENGINE_APPENGINENODE_H_
+#define PACKAGES_SCRIPTS_FILESYS_APPENGINE_APPENGINENODE_H_
 
 #include <string.h>
 #include <sys/stat.h>
@@ -99,4 +99,4 @@ class AppEngineNode {
   std::string path_;
 };
 
-#endif  // PACKAGES_SCRIPTS_FILESYS_MEMORY_MEMNODE_H_
+#endif  // PACKAGES_SCRIPTS_FILESYS_MEMORY_APPENGINENODE_H_

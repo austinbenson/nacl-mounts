@@ -14,9 +14,11 @@
 #include "AppEngineUrlLoader.h"
 #include "AppEngineNode.h"
 
+class MainThreadRunner;
+
 class AppEngineMount: public Mount {
  public:
-  AppEngineMount(pp::Instance *instance, std::string base_url);
+  AppEngineMount(MainThreadRunner *runner, std::string base_url);
   virtual ~AppEngineMount() {}
 
   void Ref(ino_t node);

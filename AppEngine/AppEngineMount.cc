@@ -10,8 +10,8 @@
 #include <errno.h>
 #include <stdio.h>
 
-AppEngineMount::AppEngineMount(pp::Instance *instance, std::string base_url)
-  : url_request_(instance, base_url) {
+AppEngineMount::AppEngineMount(MainThreadRunner *runner, std::string base_url)
+  : url_request_(runner, base_url) {
   slots_.Alloc();
 }
 
@@ -31,6 +31,16 @@ int AppEngineMount::Creat(const std::string& path, mode_t mode, struct stat* buf
   PathHandle ph(p);
   child->set_name(ph.Last());
   child->IncrementUseCount();
+
+  // read from GAE
+  std::vector<char> remote_data;
+  fprintf(stderr, "before remote read...\n");
+  url_request_.Read(path, remote_data);
+  fprintf(stderr, "after remote read...\n");
+
+  if (remote_data.size() != 0) {
+    memcpy(child->data(), &remote_data[0], remote_data.size());
+  }
 
   if (!buf) {
     return 0;

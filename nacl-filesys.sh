@@ -23,6 +23,7 @@ CustomBuildStep() {
   ${NACLCC} -c ${START_DIR}/base/MountManager.cc -o MountManager.o
   ${NACLCC} -c ${START_DIR}/base/KernelProxy.cc -o KernelProxy.o
   ${NACLCC} -c ${START_DIR}/base/PathHandle.cc -o PathHandle.o
+  ${NACLCC} -c ${START_DIR}/base/MainThreadRunner.cc -o MainThreadRunner.o  
   ${NACLCC} -c ${START_DIR}/base/Entry.cc -o Entry.o
   ${NACLCC} -c ${START_DIR}/memory/MemMount.cc -o MemMount.o
   ${NACLCC} -c ${START_DIR}/memory/MemNode.cc -o MemNode.o
@@ -33,16 +34,20 @@ CustomBuildStep() {
       MountManager.o \
       KernelProxy.o \
       PathHandle.o \
-      AppEngineUrlLoader.o \
+      MainThreadRunner.o \
       Entry.o \
       MemMount.o \
       MemNode.o \
+      AppEngineUrlLoader.o \
+      AppEngineMount.o \
+      AppEngineNode.o
+
 
   ${NACLRANLIB} filesys.a
 
   ${NACLCXX} ${START_DIR}/AppEngine/AppEngineTest.cc KernelProxy.o PathHandle.o \
       MountManager.o AppEngineUrlLoader.o AppEngineMount.o AppEngineNode.o \
-      MemMount.o MemNode.o \
+      MemMount.o MemNode.o MainThreadRunner.o \
       -lpthread -lppapi -lppapi_cpp \
       -o ${START_DIR}/AppEngine/naclmounts/static/AppEngineTest.nexe
 }

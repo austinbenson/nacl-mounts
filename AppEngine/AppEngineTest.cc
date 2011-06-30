@@ -10,49 +10,63 @@
 #include <ppapi/cpp/var.h>
 #include "AppEngineMount.h"
 #include "../base/MountManager.h"
+#include <pthread.h>
 #include <stdio.h>
 
 class AppEngineTestInstance : public pp::Instance {
  public:
   explicit AppEngineTestInstance(PP_Instance instance)
-    : pp::Instance(instance) {
+    : pp::Instance(instance),
+      runner_(this),
+      app_engine_thread_(0) {
     MountManager *mm = MountManager::MMInstance();
-    AppEngineMount *mount = new AppEngineMount(this, "/_file");
+    AppEngineMount *mount = new AppEngineMount(&runner_, "/_file");
     mm->RemoveMount("/");
     mm->AddMount(mount, "/");
     mm_ = mm;
+    fd_ = -1;
+    count_ = 0;
   }
   virtual ~AppEngineTestInstance() {}
 
   virtual void HandleMessage(const pp::Var& var_message);
+  static void *WriteTestShim(void *p);
+  void WriteTest(void);
+
 
  private:
+  MainThreadRunner runner_;
   MountManager *mm_; 
+  int fd_;
+  pthread_t app_engine_thread_;
+  int32_t count_;
 };
+
+void *AppEngineTestInstance::WriteTestShim(void *p) {
+  AppEngineTestInstance *inst = (AppEngineTestInstance *)p;
+  inst->WriteTest();
+  return NULL;
+}
+
+void AppEngineTestInstance::WriteTest(void) {
+  // PostMessage(pp::Var(count_));
+  fprintf(stderr, "Entering WriteTest()\n");
+  if (fd_ == -1) {
+    fprintf(stderr, "Open return: %d\n", fd_ = mm_->kp()->open("/increment.txt", O_CREAT | O_RDONLY, 0));
+  }
+  fprintf(stderr, "Read return: %d\n", mm_->kp()->read(fd_, &count_, 1));
+  ++count_;
+  fprintf(stderr, "Write return: %d\n", mm_->kp()->write(fd_, &count_, sizeof(int)));
+  PostMessage(pp::Var(count_));
+}
 
 void AppEngineTestInstance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string()) {
     return;
   }
 
-  fprintf(stderr, "before first open\n");
-  int fd = mm_->kp()->open("/increment.txt", O_CREAT | O_RDONLY, 0);
-  int32_t count=0;
-  fprintf(stderr, "before read\n");
-  mm_->kp()->read(fd, &count, 1);
-  ++count;
-  fprintf(stderr, "before first close\n");
-  mm_->kp()->close(fd);
-  fprintf(stderr, "before second open\n");
-  fd = mm_->kp()->open("/increment.txt", O_CREAT | O_RDWR, 0);
-  fprintf(stderr, "before write\n");
-  mm_->kp()->write(fd, &count, sizeof(int));
-  fprintf(stderr, "before second close\n");
-  mm_->kp()->close(fd);
-
-  //int32_t count=52;
-  fprintf(stderr, "before PostMessage() call\n");
-  PostMessage(pp::Var(count));
+  fprintf(stderr, "About to create pthread\n");
+  pthread_create(&app_engine_thread_, NULL, WriteTestShim, this);
 }
 
 class AppEngineTestModule : public pp::Module {
@@ -71,5 +85,3 @@ namespace pp {
     return new AppEngineTestModule();
   }
 }  // namespace pp
-
-

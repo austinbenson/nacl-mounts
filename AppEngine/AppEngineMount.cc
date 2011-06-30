@@ -33,14 +33,10 @@ int AppEngineMount::Creat(const std::string& path, mode_t mode, struct stat* buf
   child->IncrementUseCount();
 
   // read from GAE
-  std::vector<char> remote_data;
   fprintf(stderr, "before remote read...\n");
-  url_request_.Read(path, remote_data);
+  std::vector<char> data;
+  url_request_.Read(path, data);
   fprintf(stderr, "after remote read...\n");
-
-  if (remote_data.size() != 0) {
-    memcpy(child->data(), &remote_data[0], remote_data.size());
-  }
 
   if (!buf) {
     return 0;
@@ -133,12 +129,15 @@ ssize_t AppEngineMount::Read(ino_t slot, off_t offset, void *buf, size_t count) 
   }
   // Limit to the end of the file.
   size_t len = count;
-  if (len > node->len() - offset) {
-    len = node->len() - offset;
+  std::vector<char> data = node->data();
+  if (len > data.size() - offset) {
+    len = data.size() - offset;
   }
 
   // Do the read.
-  memcpy(buf, node->data() + offset, len);
+  if (!data.empty()) {
+    memcpy(buf, &data[0] + offset, len);
+  }
   return len;
 }
 
@@ -149,42 +148,15 @@ ssize_t AppEngineMount::Write(ino_t slot, off_t offset, const void *buf, size_t 
     errno = ENOENT;
     return -1;
   }
-
-  size_t len;
-  // Grow the file if needed.
-  if (offset + static_cast<off_t>(count) > node->capacity()) {
-    len = offset + count;
-    size_t next = (node->capacity() + 1) * 2;
-    if (next > len) {
-      len = next;
-    }
-    fprintf(stderr, "About to realloc data\n");
-    fprintf(stderr, "Is node NULL?: %d\n", node == NULL);
-    node->ReallocData(len);
-  }
-  // Pad any gap with zeros.
-  if (offset > static_cast<off_t>(node->len())) {
-    fprintf(stderr, "About to memset\n");
-    memset(node->data()+len, 0, offset);
-  }
-
   // Write out the block.
-  fprintf(stderr, "About to memcpy\n");
-  memcpy(node->data() + offset, buf, count);
-  offset += count;
-  if (offset > static_cast<off_t>(node->len())) {
-    node->set_len(offset);
+  if (node->WriteData(offset, buf, count) == -1) {
+    return -1;
   }
-  fprintf(stderr, "Leaving AppEngineMount::Write()\n");
   return count;
 }
 
 int AppEngineMount::Fsync(ino_t slot) {
   AppEngineNode* node = slots_.At(slot);
-  char *data = node->data();
-  int numbytes = sizeof(data);
-  std::vector<char> data_to_send(numbytes);
-  memcpy(&data_to_send[0], data, numbytes);
-  return url_request_.Write(node->path(), data_to_send);
+  return url_request_.Write(node->path(), node->data());
 }
 

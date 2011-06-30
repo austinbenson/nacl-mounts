@@ -62,9 +62,6 @@ class AppEngineNode {
   // truncate() sets the length of this node to zero
   virtual void Truncate() { len_ = 0; }
 
-  // data() returns a pointer to the data of this node
-  virtual char *data(void) { return data_; }
-
   // set_data() sets the length of this node to len
   virtual void set_len(size_t len) { len_ = len; }
 
@@ -87,11 +84,16 @@ class AppEngineNode {
   void IncrementUseCount(void) { ++use_count_; }
   void DecrementUseCount(void) { ++use_count_; }
 
+  void set_data(std::vector<char> data) { data_ = data; }
+  std::vector<char> data(void) { return data_; }
+
+  int WriteData(off_t offset, const void *buf, size_t count);
+
  private:
   std::string name_;
   int parent_;
   AppEngineMount *mount_;
-  char *data_;
+  std::vector<char> data_;
   size_t len_;
   size_t capacity_;
   bool is_dir_;

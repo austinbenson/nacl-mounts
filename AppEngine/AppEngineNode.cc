@@ -11,7 +11,6 @@
 #include <stdlib.h>
 
 AppEngineNode::AppEngineNode() {
-  data_ = NULL;
   len_ = 0;
   capacity_ = 0;
   use_count_ = 0;
@@ -56,12 +55,27 @@ int AppEngineNode::unlink() {
 }
 
 void AppEngineNode::ReallocData(int len) {
-  fprintf(stderr, "Reallocing data with len=%d\n", len);
   assert(len > 0);
-  fprintf(stderr, "Reallocing...\n");
-  data_ = reinterpret_cast<char *>(realloc(data_, len));
-  fprintf(stderr, "Done reallocing\n");
+  data_.resize(len);
   set_capacity(len);
-  fprintf(stderr, "Reallocing data NULL? %d\n", data_ == NULL);
-  assert(data_);
+}
+
+int AppEngineNode::WriteData(off_t offset, const void *buf, size_t count) {
+  size_t len;
+  // Grow the file if needed.
+  if (offset + static_cast<off_t>(count) > data_.size()) {
+    len = offset + count;
+    size_t next = (data_.size() + 1) * 2;
+    if (next > len) {
+      len = next;
+    }
+    ReallocData(len);
+  }
+
+  memcpy(&data_[0]+offset, buf, count);
+  offset += count;
+  if (offset > static_cast<off_t>(data_.size())) {
+    set_len(offset);
+  }
+  return 0;
 }

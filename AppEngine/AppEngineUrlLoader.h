@@ -33,13 +33,13 @@ class AppEnginePost : public MainThreadJob {
     url_(url),
     fields_(&fields),
     dst_(dst),
-    did_open_(false),
-    factory_(this) {
+    did_open_(false) {
     }
 
   ~AppEnginePost() {
     fprintf(stderr, "In Post destructor\n");
     delete loader_;
+    delete factory_;
   }
     
   void Run(MainThreadJobEntry* e);
@@ -56,7 +56,7 @@ class AppEnginePost : public MainThreadJob {
     
   void ProcessBytes(const char* bytes, int32_t length);
     
-  pp::CompletionCallbackFactory<AppEnginePost> factory_;
+  pp::CompletionCallbackFactory<AppEnginePost> *factory_;
   pp::URLLoader *loader_;
   MainThreadJobEntry *job_entry_;
   const KeyValueList* fields_;

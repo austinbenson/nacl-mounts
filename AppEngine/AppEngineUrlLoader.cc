@@ -9,7 +9,8 @@ void AppEnginePost::Run(MainThreadJobEntry *e) {
   fprintf(stderr, "In AppEnginePost::Run()\n");
   job_entry_ = e;
   loader_ = new pp::URLLoader(job_entry_->pepper_instance);
-  pp::CompletionCallback cc = factory_.NewCallback(&AppEnginePost::OnOpen);
+  factory_ = new pp::CompletionCallbackFactory<AppEnginePost>(this);
+  pp::CompletionCallback cc = factory_->NewCallback(&AppEnginePost::OnOpen);
   fprintf(stderr, "About to call open on loader, url is %s\n", url_.c_str());
   int32_t rv = loader_->Open(MakeRequest(url_, *fields_), cc);
   fprintf(stderr, "rv from open is %d\n", rv);
@@ -66,7 +67,7 @@ void AppEnginePost::OnRead(int32_t result) {
 }
 
 void AppEnginePost::ReadMore() {
-  pp::CompletionCallback cc = factory_.NewCallback(&AppEnginePost::OnRead);
+  pp::CompletionCallback cc = factory_->NewCallback(&AppEnginePost::OnRead);
   int32_t rv = loader_->ReadResponseBody(buf_, sizeof(buf_), cc);
   if (rv != PP_OK_COMPLETIONPENDING) {
     fprintf(stderr, "not PP_OK_COMPLETIONPENDING\n");

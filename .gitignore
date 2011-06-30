@@ -1,6 +1,7 @@
 *.o
 *.a
 .svn
+*~
 FileHandle_test
 MemFileHandle_test
 MemMount_test

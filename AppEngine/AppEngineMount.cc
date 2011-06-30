@@ -185,9 +185,6 @@ int AppEngineMount::Fsync(ino_t slot) {
   int numbytes = sizeof(data);
   std::vector<char> data_to_send(numbytes);
   memcpy(&data_to_send[0], data, numbytes);
-  if (url_request_.Write(node->path(), data_to_send) == 1) {
-    return 0;
-  }
-  return -1;
+  return url_request_.Write(node->path(), data_to_send);
 }
 

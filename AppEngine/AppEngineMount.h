@@ -42,12 +42,12 @@ class AppEngineMount: public Mount {
   virtual ssize_t Read(ino_t node, off_t offset, void *buf, size_t count);
   virtual ssize_t Write(ino_t node, off_t offset, const void *buf, size_t count);
 
-  pp::AppEngineUrlRequest *url_request() { return &url_request_; }
+  AppEngineUrlRequest *url_request() { return &url_request_; }
 
  private:
   PathHandle *path_handle_;
   SlotAllocator<AppEngineNode> slots_;
-  pp::AppEngineUrlRequest url_request_;
+  AppEngineUrlRequest url_request_;
 };
 
 #endif  // PACKAGES_SCRIPTS_FILESYS_APPENGINE_APPENGINEMOUNT_H_

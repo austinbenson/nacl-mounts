@@ -91,7 +91,7 @@ TEST(MountManagerTest, RoutedSysCalls) {
   EXPECT_EQ(-1, mm->kp()->remove(path));
   EXPECT_EQ(-1, mm->kp()->stat(path, NULL));
   EXPECT_EQ(-1, mm->kp()->access(path, 0));
-  EXPECT_EQ(0, mm->kp()->mkdir(path, 0));
+  EXPECT_EQ(-1, mm->kp()->mkdir(path, 0));
   EXPECT_EQ(-1, mm->kp()->rmdir(path));
   EXPECT_EQ(-1, mm->kp()->open(path, 0, 0));
 
@@ -223,4 +223,27 @@ TEST(MountManagerTest, access) {
   EXPECT_EQ(0, mm->kp()->access("/", amode));
   EXPECT_EQ(0, mm->kp()->access("hello/world/test.txt", amode));
 
+  mm->ClearMounts();
+}
+
+
+TEST(MountManagerTest, OpenReaWriteClose) {
+  MemMount *mnt = new MemMount();
+  EXPECT_EQ(0, mm->AddMount(mnt, "/"));
+  mm->kp()->chdir("/");
+
+  int32_t count=0;
+  int fd = -1;
+  
+  fd = mm->kp()->open("/increment.txt", O_CREAT | O_RDONLY, 0);
+  EXPECT_NE(-1, fd);
+
+  if (fd != -1) {
+    for(int i = 0; i < 10; i++) {
+      mm->kp()->read(fd, &count, 1);
+      ++count;
+      EXPECT_EQ(count, i+1);
+      mm->kp()->write(fd, &count, sizeof(int));
+    }
+  }
 }

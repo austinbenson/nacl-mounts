@@ -140,7 +140,7 @@ TEST(MemMountTest, Mkdir) {
 
   //  node1->set_is_dir(true);
 
-  EXPECT_EQ(0, mount->Mkdir("/hello/world/again/", mode, buf));
+  EXPECT_EQ(-1, mount->Mkdir("/hello/world/again/", mode, buf));
 
   EXPECT_NE(-1, mount->Creat("/hello/world/again/../../world/again/again", mode, buf));
   //  CHECK(node23);

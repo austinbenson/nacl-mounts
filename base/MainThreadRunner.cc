@@ -1,4 +1,6 @@
 #include "MainThreadRunner.h"
+#include <stdio.h>
+#include "../AppEngine/AppEngineUrlLoader.h"
 
 MainThreadJobOpen::MainThreadJobOpen(pp::URLLoader* loader, const pp::URLRequestInfo& request_info) {
   loader_ = loader;
@@ -25,11 +27,16 @@ int32_t MainThreadRunner::RunJob(MainThreadJob* job) {
  
   e.runner = this; 
   e.pepper_instance = pepper_instance_;
+  e.job = job;
   sem_init(&e.done, 0, 0);
+  fprintf(stderr, "Waiting for lock...\n");
   pthread_mutex_lock(&lock_);
+  fprintf(stderr, "Got lock\n");
   job_queue_.push_back(&e);
   pthread_mutex_unlock(&lock_);
+  fprintf(stderr, "Released lock, waiting on sem...\n");
   sem_wait(&e.done);
+  fprintf(stderr, "Sem signaled\n");
   sem_destroy(&e.done);
   return e.result;
 }
@@ -48,15 +55,19 @@ void MainThreadRunner::DoWorkShim(void *p, int32_t unused) {
 }
 
 void MainThreadRunner::DoWork(void) {
+  //fprintf(stderr, "in DoWork()\n");
   pthread_mutex_lock(&lock_);
-  if (job_queue_.size()) { 
+  if (!job_queue_.empty()) { 
     MainThreadJobEntry *e = job_queue_.front();
     job_queue_.pop_front();
+    if (e == NULL || e->job == NULL) fprintf(stderr, "NULL POINTERS\n");
+    fprintf(stderr, "about to Run\n");
     e->job->Run(e);
   } else {
+    //fprintf(stderr, "Creating callback to DoWorkShim\n");
     pp::Module::Get()->core()->CallOnMainThread(10, pp::CompletionCallback(&DoWorkShim, this), PP_OK);
   }
   pthread_mutex_unlock(&lock_);
 }
-//int32_t rv = runner->DoJob(new MainThreadJobOpen(loader, request_info));
+
 

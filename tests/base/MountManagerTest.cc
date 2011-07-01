@@ -48,6 +48,7 @@ TEST(MountManagerTest, AddRemoveMount) {
 }
 
 TEST(MountManagerTest, GetMount) {
+  mm->ClearMounts();
   std::pair<Mount *, std::string> ret;
   Mount *mnt = new Mount();
 
@@ -78,6 +79,7 @@ TEST(MountManagerTest, GetMount) {
 
 TEST(MountManagerTest, RoutedSysCalls) {
   // put in a mount
+  mm->ClearMounts();
   Mount *mnt = new Mount();
   EXPECT_EQ(0, mm->AddMount(mnt, "/"));
 
@@ -119,6 +121,7 @@ TEST(MountManagerTest, RoutedSysCalls) {
 }
 
 TEST(MountManagerTest, chdir_cwd_wd) {
+  mm->ClearMounts();
   MemMount *mnt1, *mnt2, *mnt3;
   mnt1 = new MemMount();
   // put in a mount
@@ -184,6 +187,7 @@ TEST(MountManagerTest, chdir_cwd_wd) {
 
 
 TEST(MountManagerTest, BasicOpen) {
+  mm->ClearMounts();
   MemMount *mnt = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt, "/"));
   mm->kp()->chdir("/");
@@ -195,6 +199,7 @@ TEST(MountManagerTest, BasicOpen) {
 }
 
 TEST(MountManagerTest, access) {
+  mm->ClearMounts();
   MemMount *mnt = new MemMount();
   EXPECT_EQ(0, mm->AddMount(mnt, "/"));
   mm->kp()->chdir("/");
@@ -223,27 +228,4 @@ TEST(MountManagerTest, access) {
   EXPECT_EQ(0, mm->kp()->access("/", amode));
   EXPECT_EQ(0, mm->kp()->access("hello/world/test.txt", amode));
 
-  mm->ClearMounts();
-}
-
-
-TEST(MountManagerTest, OpenReaWriteClose) {
-  MemMount *mnt = new MemMount();
-  EXPECT_EQ(0, mm->AddMount(mnt, "/"));
-  mm->kp()->chdir("/");
-
-  int32_t count=0;
-  int fd = -1;
-  
-  fd = mm->kp()->open("/increment.txt", O_CREAT | O_RDONLY, 0);
-  EXPECT_NE(-1, fd);
-
-  if (fd != -1) {
-    for(int i = 0; i < 10; i++) {
-      mm->kp()->read(fd, &count, 1);
-      ++count;
-      EXPECT_EQ(count, i+1);
-      mm->kp()->write(fd, &count, sizeof(int));
-    }
-  }
 }

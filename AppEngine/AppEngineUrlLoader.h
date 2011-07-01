@@ -75,7 +75,7 @@ class AppEngineUrlRequest {
   
   int Read(const std::string& path, std::vector<char>& dst);
   int Write(const std::string& path, const std::vector<char>& data);
-  int List(const std::string& path, std::vector<std::string>& dst);
+  int List(const std::string& path, std::vector<char>& dst);
   int Remove(const std::string& path);
 
   private:

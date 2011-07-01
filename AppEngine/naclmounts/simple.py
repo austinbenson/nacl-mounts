@@ -3,13 +3,14 @@ import datetime
 import urllib
 import wsgiref.handlers
 import os
+import logging
 
 from google.appengine.ext import db
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import template
-
+from google.appengine.ext.db import Key
 
 class File(db.Model):
   owner = db.UserProperty()
@@ -33,24 +34,38 @@ class MainPage(webapp.RequestHandler):
 
 
 def FileKey(owner, filename):
-  return Key.from_path('File', ('%s_%s') % (owner.user_id(), filename))
+  if not owner:
+    u_id = 1
+  else:
+    u_id = owner.user_id()
+  return Key.from_path('File', ('%s_%s') % (u_id, filename))
 
 
 class FileHandlingPage(webapp.RequestHandler):
   def post(self):
     # The user must be logged in.
     user = users.get_current_user()
-    if not user:
-      assert False
+    #if not user:
+      #assert False
+
+    logging.info('HEADERS')
+    logging.info(self.request.headers)
+    logging.info('BODY')
+    logging.info(self.request.body)
+    logging.info(self.request.arguments())
 
     method = self.request.path.rsplit('/', 1)[1]
 
     self.response.headers['Content-Type'] = 'application/octet-stream'
     if method == 'read':
-      self.response.out.write('1')
-      return
+      #self.response.out.write('999888777')
+      #return
       filename = self.request.get('filename')
-      assert filename
+      if not filename:
+        filename = '/test.txt'
+        self.response.out.write('999888777')
+        #return
+      #assert filename
       k = FileKey(user, filename)
       f = File.get(k)
       if f:
@@ -60,20 +75,28 @@ class FileHandlingPage(webapp.RequestHandler):
         self.response.out.write('0')
 
     elif method == 'write':
+      self.response.out.write('1')
+      return
       filename = self.request.get('filename')
       data = self.request.get('data')
-      assert filename
-      assert data
-      def create_or_update(filename, data):
+      if not filename:
+        filename = '/test.txt'
+      #assert filename
+      if not data:
+        data = '111222333'
+      #assert data
+      def create_or_update(filename, data, owner=None):
         k = FileKey(user, filename)
         f = File.get(k)
         if not f:
+          logging.info('Creating file: ' + filename)
           f = File()
           f.owner = owner
           f.filename = filename
         f.data = data
         f.put()
-      db.run_in_transaction(create_or_update, filename, data) 
+      db.run_in_transaction(create_or_update, filename, data)
+
 
     elif method == 'list':
       prefix = self.request.get('prefix')

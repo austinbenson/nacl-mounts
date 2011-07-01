@@ -49,14 +49,16 @@ void *AppEngineTestInstance::WriteTestShim(void *p) {
 }
 
 void AppEngineTestInstance::WriteTest(void) {
-  // PostMessage(pp::Var(count_));
   fprintf(stderr, "Entering WriteTest()\n");
-  if (fd_ == -1) {
-    fprintf(stderr, "Open return: %d\n", fd_ = mm_->kp()->open("/increment.txt", O_CREAT | O_RDONLY, 0));
-  }
-  fprintf(stderr, "Read return: %d\n", mm_->kp()->read(fd_, &count_, 1));
-  ++count_;
-  fprintf(stderr, "Write return: %d\n", mm_->kp()->write(fd_, &count_, sizeof(int)));
+  fprintf(stderr, "Open return: %d\n", fd_ = mm_->kp()->open("/increment.txt", O_CREAT | O_RDWR, 0));
+  char *buf = (char *)malloc(3);
+  buf[0] = '3';
+  buf[1] = '3';
+  buf[2] = '0';
+  char *buf2 = (char *)malloc(256);
+  fprintf(stderr, "Write return: %d\n", mm_->kp()->write(fd_, buf, 2));
+  fprintf(stderr, "Fsync return: %d\n", mm_->kp()->fsync(fd_));
+  fprintf(stderr, "Getdents return: %d\n", mm_->kp()->getdents(fd_, buf2, 256));
   PostMessage(pp::Var(count_));
 }
 

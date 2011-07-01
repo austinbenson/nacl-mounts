@@ -1,9 +1,9 @@
 #include "AppEngineUrlLoader.h"
 
-#define BOUNDARY_STRING "--------------4789341488943"
+#define BOUNDARY_STRING "4789341488943"
 #define BOUNDARY_STRING_HEADER BOUNDARY_STRING "\n"
-#define BOUNDARY_STRING_LF "--" BOUNDARY_STRING "\n"
-#define BOUNDARY_STRING_END_LF BOUNDARY_STRING "--\n"
+#define BOUNDARY_STRING_SEP "--" BOUNDARY_STRING "\r\n"
+#define BOUNDARY_STRING_END "--" BOUNDARY_STRING "--\r\n\r\n"
 
 void AppEnginePost::Run(MainThreadJobEntry *e) {
   fprintf(stderr, "In AppEnginePost::Run()\n");
@@ -32,12 +32,13 @@ pp::URLRequestInfo AppEnginePost::MakeRequest(const std::string& url, const KeyV
   request.SetHeaders("Content-Type: multipart/form-data; boundary=" BOUNDARY_STRING_HEADER);
   KeyValueList::const_iterator it;
   for (it = fields.begin(); it != fields.end(); ++it) {
-    request.AppendDataToBody(BOUNDARY_STRING_LF, sizeof(BOUNDARY_STRING_LF));
-    std::string line = "Content-Disposition: form-data; name=\"" + it->first + "\"\n\n";
+    request.AppendDataToBody(BOUNDARY_STRING_SEP, sizeof(BOUNDARY_STRING_SEP));
+    std::string line = "Content-Disposition: form-data; name=\"" + it->first + "\"\r\n\r\n";
     request.AppendDataToBody(line.c_str(), line.size());
     request.AppendDataToBody(&it->second[0], it->second->size());
+    request.AppendDataToBody("\r\n", 2);
   }
-  request.AppendDataToBody(BOUNDARY_STRING_END_LF, sizeof(BOUNDARY_STRING_END_LF));
+  request.AppendDataToBody(BOUNDARY_STRING_END, sizeof(BOUNDARY_STRING_END));
   fprintf(stderr, "Returning request\n");
   return request;
 }
@@ -109,6 +110,13 @@ int AppEngineUrlRequest::Write(const std::string& path, const std::vector<char>&
   KeyValueList fields;
   int raw_result;
 
+  std::vector<char>::const_iterator it;
+  fprintf(stderr, "###########\n");
+  for (it = data.begin(); it != data.end(); ++it) {
+    fprintf(stderr, "%c, ", *it);
+  }
+  fprintf(stderr, "\n###########\n");
+
   std::vector<char> filename_vec(path.begin(), path.end());
   fields.push_back(KeyValue("filename", &filename_vec));
   fields.push_back(KeyValue("data", &data));
@@ -119,29 +127,21 @@ int AppEngineUrlRequest::Write(const std::string& path, const std::vector<char>&
   return dst.size() == 1 && dst[0] == '1' ? 0 : -1;
 }
 
-int AppEngineUrlRequest::List(const std::string& path, std::vector<std::string>& dst) {
+int AppEngineUrlRequest::List(const std::string& path, std::vector<char>& dst) {
+  fprintf(stderr, "In List()\n");
   KeyValueList fields;
   int raw_result;
 
   std::vector<char> filename_vec(path.begin(), path.end());
   fields.push_back(KeyValue("prefix", &filename_vec));
 
-  std::vector<char> data;
-  raw_result = runner_->RunJob(new AppEnginePost(base_url_ + "/list", fields, &data));
+  raw_result = runner_->RunJob(new AppEnginePost(base_url_ + "/list", fields, &dst));
   if (!raw_result) return -1;
-  dst.clear();
-  std::vector<char>::const_iterator i = data.begin();
-  std::vector<char>::const_iterator end = data.end();
-  while (i != data.end()) {
-    std::vector<char>::const_iterator next = std::find(i, end, '\n');
-    if (next == data.end()) break;
-    dst.push_back(std::string(i, next - 1));
-    i = next;
-  }
   return 0;
 }
 
 int AppEngineUrlRequest::Remove(const std::string& path) {
+  fprintf(stderr, "In Remove()\n");
   KeyValueList fields;
   int raw_result;
 
@@ -150,7 +150,6 @@ int AppEngineUrlRequest::Remove(const std::string& path) {
 
   std::vector<char> data;
   raw_result = runner_->RunJob(new AppEnginePost(base_url_ + "/remove", fields, &data));
-
   if (!raw_result) return -1;
   return data.size() == 1 && data[0] == '1' ? 0 : -1;
 }

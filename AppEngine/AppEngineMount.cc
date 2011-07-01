@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2011 The Native Client Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that be
+ * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
 #include "AppEngineMount.h"
@@ -33,10 +33,20 @@ int AppEngineMount::Creat(const std::string& path, mode_t mode, struct stat* buf
   child->IncrementUseCount();
 
   // read from GAE
-  fprintf(stderr, "before remote read...\n");
+  fprintf(stderr, "Before remote read...\n");
   std::vector<char> data;
   url_request_.Read(path, data);
-  fprintf(stderr, "after remote read...\n");
+  fprintf(stderr, "Done with remote read.\n");
+  child->set_data(data);
+
+  std::vector<char> test = child->data();
+  std::vector<char>::iterator it;
+
+  fprintf(stderr, "-------------\n");
+  for (it = test.begin(); it != test.end(); ++it) {
+    fprintf(stderr, "%c, ", *it);
+  }
+  fprintf(stderr, "\n-------------\n");
 
   if (!buf) {
     return 0;
@@ -107,18 +117,24 @@ int AppEngineMount::Getdents(ino_t slot, off_t offset,
     errno = ENOTDIR;
     return -1;
   }
-  // Check that it is a directory.
-  if (!(node->is_dir())) {
-    errno = ENOTDIR;
-    return -1;
-  }
-
-  std::vector<std::string> dst;
+  std::vector<char> dst;
   url_request_.List(node->path(), dst);
 
-  // TODO(arbenson): update the dirent struct
+  std::vector<std::string> entries;
+  std::vector<char>::iterator ind = dst.begin();
+  std::vector<char>::iterator next = dst.begin();
+  while (ind != dst.end() && next != dst.end()) {
+    if (*next == '\n' && ind != next) {
+      entries.push_back(std::string(ind, next-1));
+      ind = next;
+    }
+    ++next;
+  }
+  std::string last(ind, next-1);
+  if (!last.empty()) entries.push_back(last);
 
-  return dst.size()*sizeof(struct dirent);
+  // TODO(arbenson): update the dirent struct
+  return entries.size();
 }
 
 ssize_t AppEngineMount::Read(ino_t slot, off_t offset, void *buf, size_t count) {
@@ -156,6 +172,7 @@ ssize_t AppEngineMount::Write(ino_t slot, off_t offset, const void *buf, size_t 
 }
 
 int AppEngineMount::Fsync(ino_t slot) {
+  fprintf(stderr, "In sync\n");
   AppEngineNode* node = slots_.At(slot);
   return url_request_.Write(node->path(), node->data());
 }

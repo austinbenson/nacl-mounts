@@ -28,7 +28,7 @@ void MountManager::Instantiate() {
 
 void MountManager::Init() {
   // add a memory mount at "/" to function
-  // as the deafault mount
+  // as the default mount
   MemMount *default_mount = new MemMount();
   assert(default_mount);
   AddMount(default_mount, "/");
@@ -78,7 +78,7 @@ std::pair<Mount*, ino_t> MountManager::GetNode(std::string path) {
     return res;
   }
 
-  // check if the path is an absoulte path
+  // check if the path is an absolute path
   if (path[0] == '/') {
     m_and_p = GetMount(path);
   }
